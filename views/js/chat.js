@@ -6,7 +6,7 @@ var members = [];
 console.log(members);
 
 socket.on('connect', function(){
-    var name = prompt('대화명을 입력해주세요.', '');
+    var name = prompt('닉네임을 입력해주세요.', '');
     console.log(name);
     socket.emit('newUserConnect', name);
 });
@@ -52,20 +52,7 @@ function drawChatMessage(data){
     return wrap;
 }
 
-var sendButton = document.getElementById('chatMessageSendBtn');
 var chatInput = document.getElementById('chatInput');
-
-sendButton.addEventListener('click', function(){
-    var message = chatInput.value;
-
-    if(!message) return false;    
-
-    socket.emit('sendMessage', {
-        message
-    });
-
-    chatInput.value = '';
-});
 
 function enterKey() {
 	if (window.event.keyCode == 13) {

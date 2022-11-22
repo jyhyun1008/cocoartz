@@ -29,6 +29,7 @@ body {
     text-align: center;
     background-color: var(--bg);
     -ms-overflow-style: none;
+    line-height: 1.5em;
 }
 
 ::-webkit-scrollbar {
@@ -46,8 +47,23 @@ h1 {
     font-size: 2em;
 }
 
-span{
-    line-height: 1.5em;
+h2 {
+    font-family: 'HSGooltokki';
+    color: var(--accent);
+    font-size: 1.7em;
+}
+
+form {
+    overflow:auto;
+}
+
+code, .output__user__name{
+    background-color: var(--accent);
+    color: var(--accenttext);
+    border-radius: 15px;
+    padding: 5px;
+    width: 20%;
+    margin-right:10px;
 }
 
 .navbar, .footer{
@@ -81,6 +97,13 @@ span{
     box-sizing: border-box;
 }
 
+.full-width {
+    width: 100%;
+    overflow:auto;
+    margin: 0 auto;
+    position: relative; 
+}
+
 .app__info{
     position: absolute;
     top: 0;
@@ -105,16 +128,6 @@ span{
     margin-bottom: 15px !important;
 }
 
-.output__user__name{
-    background-color: var(--accent);
-    color: var(--accenttext);
-    border-radius: 15px;
-    padding: 5px;
-    width: 20%;
-    margin-right:10px;
-    font-weight:700;
-}
-
 .app__input__wrap{
     background: var(--bg);
 }
@@ -128,20 +141,41 @@ span{
 .app__input{
     float: left;
     display: block;
-    width: 78%;
+    width: 80%;
     height: 40px;
     border: 0;
     border-radius: 15px;
+    margin: 0 10%;
+    padding: 0;
+    text-indent: 10px;
 }
 
-.app__button{
+.full-input {
     float: left;
     display: block;
-    width: 20%;
+    width: 100%;
     height: 40px;
     border: 0;
     border-radius: 15px;
-    background: var(--accent);
-    color: var(--bg);
-    cursor: pointer;
+    padding: 0;
+    text-indent: 10px;
+}
+
+.app__button {
+    float: left;
+    display: block;
+    width: 80%;
+    height: 40px;
+    border: 0;
+    border-radius: 15px;
+    background-color: var(--accent);
+    color: var(--accenttext);
+    margin: 0 10%;
+    padding: 0;
+    font-size: 16px;
+}
+
+.margin-yes {
+    margin-top: 10px;
+    margin-bottom: 10px;
 }
