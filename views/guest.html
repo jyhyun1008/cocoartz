@@ -1,0 +1,43 @@
+
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <link rel="stylesheet" type="text/css" href="./views/css/main.css">
+    <title>COCOARTZ!</title>
+</head>
+<body>
+    <nav class="navbar">
+        <div id="coconav">
+          <a href="/">메인</a> | 
+          <a href="/about">코코아츠</a> | 
+          <a href="/login">로그인</a> | 
+          <a href="/guest">게스트룸</a>
+        </div>
+      </nav>
+
+    <!--본격적인 HTML은 여기서부터-->
+
+    <div class="width-370px">
+    <div class="app__wrap">
+        <div id="info" class="app__info"></div>
+        <div id="chatWindow" class="app__window"></div>
+        <div class="app__input__wrap">
+            <input id="chatInput" type="text" class="app__input" onkeyup="enterKey()" autofocus placeholder="대화를 입력해주세요.">
+            <button id="chatMessageSendBtn" class="app__button">전송</button>
+        </div>
+    </div>
+    </div>
+
+    <!--footer-->
+    <div class="footer">
+        <div>COCOARTZ!</div>
+    </div>
+
+<script src="/socket.io/socket.io.js"></script>
+<script src="./views/js/chat.js"></script>
+
+</body>
+</html>
