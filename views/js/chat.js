@@ -1,6 +1,19 @@
 
 //'use strict';
 
+const chatBtn = document.querySelector('#chatBtn');
+const chatInput = document.querySelector('#chatInput');
+
+window.addEventListener('keyup', ()=>{
+    if(chatInput.value.length > 0){
+        chatBtn.disabled = false;
+        chatBtn.classList.add('active');
+    }else{
+        chatBtn.disabled = true;
+        chatBtn.classList.remove('active');
+    }
+})
+
 var socket = io();
 var members = [];
 console.log(members);
@@ -52,18 +65,19 @@ function drawChatMessage(data){
     return wrap;
 }
 
-var chatInput = document.getElementById('chatInput');
-
 function enterKey() {
 	if (window.event.keyCode == 13) {
-        var message = chatInput.value;
-
-        if(!message) return false;    
-    
-        socket.emit('sendMessage', {
-            message
-        });
-    
-        chatInput.value = '';
+        chatFunc();
     }
+}
+
+chatBtn.addEventListener('click', chatFunc) // 'click'이란 id의 버튼을 누르면 signinFunc 함수를 실행.
+
+function chatFunc() {
+    var message = chatInput.value;
+    if(!message) return false;    
+    socket.emit('sendMessage', {
+        message
+    });
+    chatInput.value = '';
 }

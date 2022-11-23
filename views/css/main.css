@@ -59,6 +59,11 @@ form {
     overflow:auto;
 }
 
+svg {
+    transform: scale(0.5);
+    transform-origin: 0px 0px;
+}
+
 code, .output__user__name{
     background-color: var(--accent);
     color: var(--accenttext);
@@ -76,8 +81,8 @@ code, .output__user__name{
     text-align: center;
 }
 
-.width-370px {
-    max-width: 370px;
+.width-400px {
+    max-width: 400px;
     height: calc( 100vh - 200px );
     background-color: var(--bg);
     color: var(--text);
@@ -141,9 +146,7 @@ code, .output__user__name{
     clear:both;
 }
 
-.app__input{
-    float: left;
-    display: block;
+.width80_input{
     width: 80%;
     height: 40px;
     border: 0;
@@ -153,20 +156,7 @@ code, .output__user__name{
     text-indent: 10px;
 }
 
-.full-input {
-    float: left;
-    display: block;
-    width: 100%;
-    height: 40px;
-    border: 0;
-    border-radius: 15px;
-    padding: 0;
-    text-indent: 10px;
-}
-
-.app__button {
-    float: left;
-    display: block;
+.width80_button {
     width: 80%;
     height: 40px;
     border: 0;
@@ -178,11 +168,43 @@ code, .output__user__name{
     font-size: 16px;
 }
 
-.app__button.active {
+.width80_button.active {
     background-color: var(--accent);
 }
 
-.margin-yes {
+.full_input {
+    float: left;
+    display: block;
+    height: 40px;
+    border: 0;
+    border-radius: 15px;
+    padding: 0;
+    text-indent: 10px;
+}
+
+.full_textarea {
+    float: left;
+    display: block;
+    border: 0;
+    border-radius: 15px;
+    padding: 0;
+}
+
+.full_button {
+    height: 40px;
+    border: 0;
+    border-radius: 15px;
+    background-color: var(--inactaccent);
+    color: var(--accenttext);
+    padding: 0;
+    font-size: 16px;
+}
+
+.full_button.active {
+    background-color: var(--accent);
+}
+
+.margin_yes {
     margin-top: 10px;
     margin-bottom: 10px;
 }

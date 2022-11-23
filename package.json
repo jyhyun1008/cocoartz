@@ -22,5 +22,8 @@
     "url": "https://github.com/jyhyun1008/cocoartz/issues"
   },
   "homepage": "https://github.com/jyhyun1008/cocoartz#readme",
-  "description": ""
+  "description": "",
+  "devDependencies": {
+    "abcjs": "^6.1.7"
+  }
 }
