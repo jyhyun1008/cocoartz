@@ -2,8 +2,9 @@
 
 ![따뜻한 코코아 그림](https://github.com/jyhyun1008/cocoartz/blob/master/views/assets/cocoa.png?raw=true)
 
-[블로그](https://velog.io/@hyun1008)
-[노션](https://peachtart.notion.site/COCOARTZ-8dd41b4239c5494ea95a335fe609bc38)
+↗︎[블로그](https://velog.io/@hyun1008)
+
+↗︎[노션](https://peachtart.notion.site/COCOARTZ-8dd41b4239c5494ea95a335fe609bc38)
 
 > 이 페이지는 영어를 지원하지 않습니다. ~~라는 메세지조차 영어를 지원하지 않습니다.~~
 
