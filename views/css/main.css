@@ -59,7 +59,7 @@ form {
     overflow:auto;
 }
 
-svg {
+#notation svg {
     transform: scale(0.5);
     transform-origin: 0px 0px;
 }
