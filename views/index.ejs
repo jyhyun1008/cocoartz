@@ -50,6 +50,7 @@ D2|:"Em"EB{c}BA B2 EB|~B2 AB dBAG|"D"FDAD BDAD|FDAD dAFD|
     </html>
 <script src="/js/abcjs.js"></script>
 <script>
+
     const abcBtn = document.querySelector('#abcBtn');
     const abcInput = document.querySelector('#abcInput');
 
@@ -69,17 +70,12 @@ D2|:"Em"EB{c}BA B2 EB|~B2 AB dBAG|"D"FDAD BDAD|FDAD dAFD|
         var abcMelody = abcInput.innerHTML;
 
         if (ABCJS.synth.supportsAudio()) {
-            var visualObj = ABCJS.renderAbc('notation', abcMelody)[0];
+            var visualObj = ABCJS.renderAbc('notation', abcMelody, { responsive: 'resize' })[0];
             var synthControl = new ABCJS.synth.SynthController();
             synthControl.load("#audio", null, {displayRestart: true, displayPlay: true, displayProgress: true});
             synthControl.setTune(visualObj, false);
         } else {
             document.querySelector("#audio").innerHTML = "<div class='audio-error'>오디오를 지원하지 않는 브라우저입니다.</div>";
         }
-
-        var svgchild = document.querySelector('#notation svg');
-        var svgparent = document.querySelector('#notation');
-        
-        svgparent.style.cssText = "overflow: hidden; height: "+(svgchild.getAttribute('height') / 2 + 50)+"px;";
     }
 </script>

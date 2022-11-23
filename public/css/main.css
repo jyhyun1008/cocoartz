@@ -59,11 +59,6 @@ form {
     overflow:auto;
 }
 
-#notation svg {
-    transform: scale(0.5);
-    transform-origin: 0px 0px;
-}
-
 code, .output__user__name{
     background-color: var(--accent);
     color: var(--accenttext);

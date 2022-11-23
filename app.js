@@ -6,6 +6,8 @@ const app = express();
 const path = require('path');
 const server = http.createServer(app);
 
+// 라우팅
+
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views')); 
 app.use(express.static(__dirname + '/public'));
@@ -30,6 +32,26 @@ app.get('/land/:userID', function (req, res) {
     console.log(req.params.userID);
     res.render('land', {userID: req.params.userID});
 });
+
+// DB 연결부
+
+const { Client } = require("pg");
+const config = require("./db/psql.js").local;
+
+const db = new Client({
+  user: config.user,
+  host: config.host,
+  database: config.database,
+  password: config.password,
+  port: config.port,
+});
+db.connect();
+
+if ( db.user == config.user ) {
+    console.log('데이터베이스에 잘 연결되었습니다!');
+}
+
+// 소켓 io
 
 const io = require('socket.io')(server);
 
