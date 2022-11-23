@@ -3,40 +3,32 @@
 const express = require('express');
 const http = require('http');
 const app = express();
-const fs = require('fs');
+const path = require('path');
+const server = http.createServer(app);
 
-// Helper function 
-function readAndServe(path, res)   
-{
-    fs.readFile(path,function(err, data)
-    {
-        //console.log(data);
-        // res.setHeader('Content-Type', 'text/html');
-        res.end(data);
-    })
-}
+app.set('view engine', 'ejs');
+app.set('views', path.join(__dirname, 'views')); 
+app.use(express.static(__dirname + '/public'));
 
-const server = http.createServer((req, res) => {  
-  const url = req.url;
-  const method = req.method;
+app.get('/', function (req, res) {
+    res.render('index');
+});
+
+app.get('/about', function (req, res) {
+    res.render('about');
+});
+
+app.get('/login', function (req, res) {
+    res.render('login');
+});
   
-  /* Serving static files on specific Routes */
-  if(url === "/") {
-    readAndServe("./views/index.html",res) 
-  } else if(url === "/about") {
-    readAndServe("./views/about.html",res) 
-  } else if(url === "/login") {
-    readAndServe("./views/login.html",res) 
-  } else if(url === "/guest") {
-    readAndServe("./views/guest.html",res) 
-  } else if(url.startsWith("/views") == true) {
-    readAndServe("."+url, res)
-    //path 이름이 /views로 시작하는 url을 받았을 경우 그 url을 그대로 읽어서 serve해준다.
-  } else {
-    res.end("Path not found"); 
-      /* All paths other than / and /about will send an error as 
-      a response */
-  }
+app.get('/guest', function (req, res) {
+    res.render('guest');
+});
+
+app.get('/land/:userID', function (req, res) {
+    console.log(req.params.userID);
+    res.render('land', {userID: req.params.userID});
 });
 
 const io = require('socket.io')(server);
