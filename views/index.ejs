@@ -9,20 +9,32 @@
             <title>COCOARTZ!</title>
         </head>
         <body>
-            <nav class="navbar">
-                <div id="coconav">
-                  <a href="/">메인</a> | 
-                  <a href="/about">코코아츠</a> | 
-                  <a href="/login">로그인</a> | 
-                  <a href="/guest">게스트룸</a>
-                </div>
-              </nav>
-        
+            <% if (isLogin == true) { %> 
+                <nav class="navbar">
+                    <div id="coconav">
+                      <a href="/">메인</a> | 
+                      <a href="/about">코코아츠</a> | 
+                      <a href="/logout">로그아웃</a> | 
+                      <a href="/land/<%=userID %>">내 방</a>
+                    </div>
+                  </nav>
+            <% } else { %>
+                <nav class="navbar">
+                    <div id="coconav">
+                      <a href="/">메인</a> | 
+                      <a href="/about">코코아츠</a> | 
+                      <a href="/login">로그인</a> | 
+                      <a href="/guest">게스트룸</a>
+                    </div>
+                  </nav>
+            <% } %>
+
             <!--본격적인 HTML은 여기서부터-->
         
             <div class="width-400px">
                 <h1>COCOARTZ!</h1>
                 <div><img src="/assets/cocoa.png" style="width: calc( 100% - 20px ); padding-right: 20px; padding-bottom: 20px;"></div>
+                <div><%=userID %> 님, 안녕하세요!</div>
                 <div>아래에서 간단? 하게 음악을 만들어봅시다. <a href="https://abcnotation.com/examples#beams">abc notation</a> 이라는 기보법을 쓰고 있어요. 이 기보법으로 멜로디를 작성한 뒤 '렌더링' 버튼을 누르면, 플레인 텍스트가 악보와 미디로 바뀐답니다.</div>
                 <form>
                     <textarea id="abcInput" class="full_textarea margin_yes" style="width:100%; height: 200px;">X:1
