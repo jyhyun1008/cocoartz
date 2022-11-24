@@ -1,0 +1,20 @@
+<% if (isLogin == true) { %> 
+    <nav class="navbar">
+        <div id="coconav">
+          <a href="/">메인</a> | 
+          <a href="/about">코코아츠</a> | 
+          <a href="/logout">로그아웃</a> | 
+          <a href="/land/<%=userID %>">내 방</a> | 
+          <a href="/guest">전체 채팅방</a>
+        </div>
+      </nav>
+<% } else { %>
+    <nav class="navbar">
+        <div id="coconav">
+          <a href="/">메인</a> | 
+          <a href="/about">코코아츠</a> | 
+          <a href="/login">로그인</a> | 
+          <a href="/guest">전체 채팅방</a>
+        </div>
+      </nav>
+<% } %>

@@ -30,7 +30,7 @@ function loginFunc() {
   };
   console.log(req);
 
-  fetch('/login_cookie',{
+  fetch('/login',{
     method: "POST", 
     headers: {
       "Content-Type": "application/json"

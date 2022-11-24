@@ -3,6 +3,7 @@
 
 const chatBtn = document.querySelector('#chatBtn');
 const chatInput = document.querySelector('#chatInput');
+var ifLogin = document.querySelector(".width-400px").id.includes("userid_guest");
 
 window.addEventListener('keyup', ()=>{
     if(chatInput.value.length > 0){
@@ -16,10 +17,11 @@ window.addEventListener('keyup', ()=>{
 
 var socket = io();
 var members = [];
+
 console.log(members);
 
 socket.on('connect', function(){
-    var name = prompt('닉네임을 입력해주세요.', '');
+    var name = document.querySelector(".width-400px").id.substring(7);
     console.log(name);
     socket.emit('newUserConnect', name);
 });

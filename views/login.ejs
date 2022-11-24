@@ -9,18 +9,11 @@
     <title>COCOARTZ!</title>
 </head>
 <body>
-    <nav class="navbar">
-        <div id="coconav">
-          <a href="/">메인</a> | 
-          <a href="/about">코코아츠</a> | 
-          <a href="/login">로그인</a> | 
-          <a href="/guest">게스트룸</a>
-        </div>
-      </nav>
+    <%-include('./comp/navbar.ejs') %>
 
     <!--본격적인 HTML은 여기서부터-->
 
-    <div class="width-400px">
+    <div class="width-400px" id="userid_<%= userID %>">
         <h1>로그인</h1>
         <div class="login-wrap">
             <div class="login-form full-width">

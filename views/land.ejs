@@ -1,31 +1,59 @@
 <html lang="ko">
-        <head>
-            <meta charset="UTF-8">
-            <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" >
-            <meta http-equiv="X-UA-Compatible" content="ie=edge">
-            <link rel="stylesheet" type="text/css" href="/css/main.css">
-            <title>COCOARTZ!</title>
-        </head>
-        <body>
-            <nav class="navbar">
-                <div id="coconav">
-                  <a href="/">메인</a> | 
-                  <a href="/about">코코아츠</a> | 
-                  <a href="/login">로그인</a> | 
-                  <a href="/guest">게스트룸</a>
-                </div>
-              </nav>
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" >
+        <meta http-equiv="X-UA-Compatible" content="ie=edge">
+        <link rel="stylesheet" type="text/css" href="/css/main.css">
+        <title>COCOARTZ!</title>
+    </head>
+    <body>
+        <%-include('./comp/navbar.ejs') %>
         
-            <!--본격적인 HTML은 여기서부터-->
+        <!--본격적인 HTML은 여기서부터-->
         
-            <div class="width-400px" style="text-align: center;">
-                <h1 id="land_title">방 제목</h1>
-                <div>id: <%=landID %></div>
-            </div>
+        <div class="width-400px" style="text-align: center;" id="userid_<%= userID %>">
+            <script type="module">
+                import { OrbitControls } from '/js/three/OrbitControls.js';
+                import * as THREE from '/js/three/three.module.js';
+
+                const cheight = document.body.clientHeight - 200;
+                //const cwidth = document.body.clientWidth;
+                const cwidth = 400;
+
+                var scene = new THREE.Scene();
+                var camera = new THREE.PerspectiveCamera( 75, 400/cheight, 0.1, 1000 );
+                var renderer = new THREE.WebGLRenderer();
+
+                renderer.setSize( 400, cheight , false);
+                document.querySelector("#userid_<%= userID %>").appendChild( renderer.domElement );
+
+                var geometry = new THREE.BoxGeometry( 1, 1, 1 );
+                var material = new THREE.MeshBasicMaterial( { color: 0x00ff00 } );
+                var cube = new THREE.Mesh( geometry, material );
+                scene.add( cube );
+
+                camera.position.z = 5;
+
+                const controls = new OrbitControls( camera, renderer.domElement );
+                controls.target.set( 0, 0.5, 0 );
+                controls.update();
+                controls.enablePan = false;
+                controls.enableDamping = true;
+
+                var animate = function () {
+                    requestAnimationFrame( animate );
+                    controls.update();
+
+                    renderer.render( scene, camera );
+                };
+
+                animate();
+            </script>
+        </div>
         
-            <!--footer-->
-            <div class="footer">
-                <div>COCOARTZ!</div>
-            </div>
-        </body>
-    </html>
+        <!--footer-->
+        <div class="footer">
+            <div>COCOARTZ!</div>
+        </div>
+    </body>
+</html>

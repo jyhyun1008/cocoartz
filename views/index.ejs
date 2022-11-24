@@ -9,29 +9,11 @@
             <title>COCOARTZ!</title>
         </head>
         <body>
-            <% if (isLogin == true) { %> 
-                <nav class="navbar">
-                    <div id="coconav">
-                      <a href="/">메인</a> | 
-                      <a href="/about">코코아츠</a> | 
-                      <a href="/logout">로그아웃</a> | 
-                      <a href="/land/<%=userID %>">내 방</a>
-                    </div>
-                  </nav>
-            <% } else { %>
-                <nav class="navbar">
-                    <div id="coconav">
-                      <a href="/">메인</a> | 
-                      <a href="/about">코코아츠</a> | 
-                      <a href="/login">로그인</a> | 
-                      <a href="/guest">게스트룸</a>
-                    </div>
-                  </nav>
-            <% } %>
+            <%-include('./comp/navbar.ejs') %>
 
             <!--본격적인 HTML은 여기서부터-->
         
-            <div class="width-400px">
+            <div class="width-400px" id="userid_<%= userID %>">
                 <h1>COCOARTZ!</h1>
                 <div><img src="/assets/cocoa.png" style="width: calc( 100% - 20px ); padding-right: 20px; padding-bottom: 20px;"></div>
                 <div><%=userID %> 님, 안녕하세요!</div>

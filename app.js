@@ -8,37 +8,6 @@ const server = http.createServer(app);
 const cookieParser = require('cookie-parser')
 const { checkLogin } = require("./module/checkLogin.js");
 
-// 라우팅
-
-app.set('view engine', 'ejs');
-app.set('views', path.join(__dirname, 'views')); 
-app.use(express.static(__dirname + '/public'));
-
-app.get('/', function (req, res) {
-    res.render('index', { userID: checkLogin(req).cookie.userID, isLogin: checkLogin(req).cookie.isLogin, msg: checkLogin(req).cookie.msg});
-});
-app.get('/about', function (req, res) {
-    res.render('about');
-});
-app.get('/login', function (req, res) {
-    res.render('login');
-});
-app.get("/logout", function(req, res){
-    console.log("clear cookie");
-    // 로그아웃 쿠키 삭제
-    res.clearCookie('userid');
-    res.clearCookie('login');
-    
-    res.redirect('/login');
-});
-app.get('/guest', function (req, res) {
-    res.render('guest');
-});
-app.get('/land/:landID', function (req, res) {
-    console.log(req.params.landID);
-    res.render('land', {landID: req.params.landID});
-});
-
 // DB 연결부
 
 const { Client } = require("pg");
@@ -51,6 +20,7 @@ const db = new Client({
   password: config.password,
   port: config.port,
 });
+
 db.connect();
 
 if ( db.user == config.user ) {
@@ -67,6 +37,41 @@ function dbQuery(query) {
     .catch((e) => console.error(e.stack));
 }
 
+// 라우팅
+
+app.set('view engine', 'ejs');
+app.set('views', path.join(__dirname, 'views')); 
+app.use(express.static(__dirname + '/public'));
+
+app.get('/', function (req, res) {
+    cookie = checkLogin(req, db).cookie;
+    res.render('index', { userID: cookie.userID, userName: cookie.userName, isLogin: cookie.isLogin, msg: cookie.msg});
+});
+app.get('/about', function (req, res) {
+    cookie = checkLogin(req, db).cookie;
+    res.render('about', { userID: cookie.userID, userName: cookie.userName, isLogin: cookie.isLogin, msg: cookie.msg});
+});
+app.get('/guest', function (req, res) {
+    cookie = checkLogin(req, db).cookie;
+    res.render('guest', { userID: cookie.userID, userName: cookie.userName, isLogin: cookie.isLogin, msg: cookie.msg});
+});
+app.get('/land/:landID', function (req, res) {
+    cookie = checkLogin(req, db).cookie;
+    res.render('land', { landID: req.params.landID, userID: cookie.userID, userName: cookie.userName, isLogin: cookie.isLogin, msg: cookie.msg});
+});
+
+app.get('/login', function (req, res) {
+    cookie = checkLogin(req, db).cookie;
+    res.render('login', { userID: cookie.userID, userName: cookie.userName, isLogin: cookie.isLogin, msg: cookie.msg});
+});
+app.get("/logout", function(req, res){
+    console.log("clear cookie");
+    // 로그아웃 쿠키 삭제
+    res.clearCookie('userid');
+    
+    res.redirect('/login');
+});
+
 // 로그인
 
 let result = {rows: [{userID: 'test', userPW: '1234', userName: '테스트'}]}
@@ -75,13 +80,14 @@ app.use(express.json());
 app.use(express.urlencoded({ extended : true}));
 app.use(cookieParser());
 
-app.post("/login_cookie", function (req, res) {
+app.post("/login", function (req, res) {
     const id = req.body.id,
     password = req.body.password;
 
     if (result.rows[0].userID === id && result.rows[0].userPW === password) {
-        console.log("로그인 성공");
-        res.setHeader('Set-Cookie', 'userid='+id+';');
+        const name = result.rows[0].userName;
+        console.log("로그인 성공: "+'userid='+id+';username='+name+';login=true');
+        res.setHeader('Set-Cookie', 'userid='+id);
         res.redirect('/');
     } else {
         console.log("로그인 실패");
