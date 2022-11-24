@@ -1,6 +1,6 @@
 # 코코아츠(COCOARTZ)!
 
-![따뜻한 코코아 그림](https://github.com/jyhyun1008/cocoartz/blob/master/views/assets/cocoa.png?raw=true)
+![따뜻한 코코아 그림](https://github.com/jyhyun1008/cocoartz/blob/master/public/assets/cocoa.png?raw=true)
 
 ↗︎[블로그](https://velog.io/@hyun1008)
 
