@@ -99,40 +99,42 @@ app.post("/login", function (req, res) {
 
 const io = require('socket.io')(server);
 
-let room_id = 111;
+let room_id = 'test';
+eval("var "+room_id+"_User = {}");
+
+//test_User = { test: {position: {x: 0}} } 같은 느낌으로 저장
 
 io.sockets.on('connection', function(socket){
     socket.join("_room" + room_id);
-    socket.on('newUserConnect', function(name){
+    socket.on('newUserConnect', function(name, position){
         socket.name = name;
-        members = io.sockets.adapter.rooms.get('_room'+room_id).size;
-        console.log(members);
+        socket.postion = position;
+        eval(room_id+"_User."+name+" = {}");
+        eval(room_id+"_User."+name+".position = {}");
+        eval(room_id+"_User."+name+".position.x = "+position.x);
+        eval(room_id+"_User."+name+".position.y = "+position.y);
+        eval(room_id+"_User."+name+".position.z = "+position.z);
+
         io.sockets.emit('loadUserAvatar', {
-            name : name
+            user : eval(room_id+"_User")
         })
 
         io.sockets.emit('updateMessage', {
             name : '<시스템>',
-            message : name + '님이 접속했습니다.',
-            members: members,
+            message : name + '님이 접속했습니다.'
         });
     });
 
     socket.on('disconnect', function(){
+        eval("delete "+room_id+"_User."+socket.name);
 
-        if (io.sockets.adapter.rooms.get('_room'+room_id) !== undefined){
-            socket.members = io.sockets.adapter.rooms.get('_room'+room_id).size;
-        } else {
-            socket.members = 0;
-        }
         io.sockets.emit('loadUserAvatar', {
-            name : socket.name
+            user : eval(room_id+"_User")
         })
 
         io.sockets.emit('updateMessage', {
             name : '<시스템>',
-            message : socket.name + '님이 퇴장했습니다.',
-            members : socket.members
+            message : socket.name + '님이 퇴장했습니다.'
         });
     });
 
@@ -140,19 +142,13 @@ io.sockets.on('connection', function(socket){
         data.name = socket.name;
         io.sockets.emit('updateMessage', data);
     });
-
-    socket.on('sendPosition', function(name, posx, posy, posz){
-        io.sockets.emit('updatePosition', {
-            name: name, 
-            posx: posx,
-            posy: posy,
-            posz: posz
-        } );
-    })
-
-    socket.on('positionChanged', function(name){
+    
+    socket.on('positionChanged', function(name, position){
+        eval(room_id+"_User."+name+".position.x = "+position.x);
+        eval(room_id+"_User."+name+".position.y = "+position.y);
+        eval(room_id+"_User."+name+".position.z = "+position.z);
         io.sockets.emit('loadUserAvatar', {
-            name : name
+            user : eval(room_id+"_User")
         })
     })
 });

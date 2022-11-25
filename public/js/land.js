@@ -68,16 +68,7 @@ var my_position = {
 
 var socket = io();
 socket.on('connect', function(){
-    //var mycolor = 0x70594D;
-    //var geometry = new THREE.BoxGeometry( 1, 1, 1 );
-    //var material = new THREE.MeshBasicMaterial( { color: 0x70594D } );
-    //var myavatar = new THREE.Mesh( geometry, material );
-
-    //scene.add( cube );
-
-    socket.emit('newUserConnect', my_name);
-    
-
+    socket.emit('newUserConnect', my_name, my_position);
 });
 
 document.addEventListener('keydown', function(e){
@@ -96,28 +87,25 @@ document.addEventListener('keydown', function(e){
     }
     controls.target.set(my_position.x, my_position.y, my_position.z);
     
-    animatepolling();
+    socket.emit('positionChanged', my_name, my_position);
 });
 
-function animatepolling(){
-    scene = new THREE.Scene();
-    scene.background = new THREE.Color( 0xF0EEE4 );
-    socket.emit('positionChanged', my_name);
-    controls.update();
-    requestAnimationFrame(function() {
+
+socket.on('loadUserAvatar', function(avatar){
+        scene = new THREE.Scene();
+        scene.background = new THREE.Color( 0xF0EEE4 );
+
+        for(var key in avatar.user){
+            var x = avatar.user[key].position.x;
+            var y = avatar.user[key].position.y;
+            var z = avatar.user[key].position.z;
+
+            avatarLoader(key, x, y, z);
+        }
+        controls.update();
         renderer.render( scene, camera );
-    });
 
-}
-
-socket.on('loadUserAvatar', function(user){
-    socket.emit('sendPosition', my_name, my_position.x, my_position.y, my_position.z);
 })
-
-socket.on('updatePosition', function(avatar){
-    avatarLoader(avatar.name, avatar.posx, avatar.posy, avatar.posz);
-})
-    
 
 
 const controls = new OrbitControls( camera, renderer.domElement );
