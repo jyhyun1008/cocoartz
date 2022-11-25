@@ -11,43 +11,20 @@
         
         <!--본격적인 HTML은 여기서부터-->
         
-        <div class="width-400px" style="text-align: center;" id="userid_<%= userID %>">
-            <script type="module">
-                import { OrbitControls } from '/js/three/OrbitControls.js';
-                import * as THREE from '/js/three/three.module.js';
+        <div class="width-400px" style="text-align: center; background-color: #00000000;" id="userid_<%= userID %>">
+            <canvas id="threejs" style="z-index: 1; position: fixed; left: 0; top: 100px;"></canvas>
+            <h1>방 제목</h1>
+            <div><%=userID %> 님, 안녕하세요!</div>
+            <script src="/socket.io/socket.io.js"></script>
+            <script src="/js/land.js" type="module"></script>
+            <script>
+                
+                if (document.querySelector('.width-400px').id.startsWith('userid_guest') === false){
+                    window.addEventListener('resize', function () { 
+                    window.location.reload(); 
+                });
+                }
 
-                const cheight = document.body.clientHeight - 200;
-                //const cwidth = document.body.clientWidth;
-                const cwidth = 400;
-
-                var scene = new THREE.Scene();
-                var camera = new THREE.PerspectiveCamera( 75, 400/cheight, 0.1, 1000 );
-                var renderer = new THREE.WebGLRenderer();
-
-                renderer.setSize( 400, cheight , false);
-                document.querySelector("#userid_<%= userID %>").appendChild( renderer.domElement );
-
-                var geometry = new THREE.BoxGeometry( 1, 1, 1 );
-                var material = new THREE.MeshBasicMaterial( { color: 0x00ff00 } );
-                var cube = new THREE.Mesh( geometry, material );
-                scene.add( cube );
-
-                camera.position.z = 5;
-
-                const controls = new OrbitControls( camera, renderer.domElement );
-                controls.target.set( 0, 0.5, 0 );
-                controls.update();
-                controls.enablePan = false;
-                controls.enableDamping = true;
-
-                var animate = function () {
-                    requestAnimationFrame( animate );
-                    controls.update();
-
-                    renderer.render( scene, camera );
-                };
-
-                animate();
             </script>
         </div>
         

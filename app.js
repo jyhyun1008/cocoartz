@@ -105,38 +105,56 @@ io.sockets.on('connection', function(socket){
     socket.join("_room" + room_id);
     socket.on('newUserConnect', function(name){
         socket.name = name;
-        let members = io.sockets.adapter.rooms.get('_room'+room_id).size;
-        //console.log(members);
+        members = io.sockets.adapter.rooms.get('_room'+room_id).size;
+        console.log(members);
+        io.sockets.emit('loadUserAvatar', {
+            name : name
+        })
 
         io.sockets.emit('updateMessage', {
             name : '<시스템>',
             message : name + '님이 접속했습니다.',
-            members: members
+            members: members,
         });
-
     });
 
     socket.on('disconnect', function(){
 
         if (io.sockets.adapter.rooms.get('_room'+room_id) !== undefined){
             socket.members = io.sockets.adapter.rooms.get('_room'+room_id).size;
-            //console.log(socket.members);
         } else {
             socket.members = 0;
         }
+        io.sockets.emit('loadUserAvatar', {
+            name : socket.name
+        })
 
         io.sockets.emit('updateMessage', {
             name : '<시스템>',
             message : socket.name + '님이 퇴장했습니다.',
             members : socket.members
         });
-
     });
 
     socket.on('sendMessage', function(data){
         data.name = socket.name;
         io.sockets.emit('updateMessage', data);
     });
+
+    socket.on('sendPosition', function(name, posx, posy, posz){
+        io.sockets.emit('updatePosition', {
+            name: name, 
+            posx: posx,
+            posy: posy,
+            posz: posz
+        } );
+    })
+
+    socket.on('positionChanged', function(name){
+        io.sockets.emit('loadUserAvatar', {
+            name : name
+        })
+    })
 });
 
 server.listen(8080, function(){
