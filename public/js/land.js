@@ -1,11 +1,10 @@
 import { OrbitControls } from '/js/three/OrbitControls.js';
 import * as THREE from '/js/three/three.module.js';
 import { FontLoader } from '/js/three/FontLoader.js';
-import { TextGeometry } from '/js/three/TextGeometry.js';
+import { GLTFLoader } from '/js/three/GLTFLoader.js';
+
 
 const canvas = document.querySelector('#threejs');
-
-
 
 
 var scene = new THREE.Scene();
@@ -17,6 +16,10 @@ var renderer = new THREE.WebGLRenderer({ canvas, alpaha: false, });
 renderer.setSize( window.innerWidth, window.innerHeight - 200, false);
 
 camera.position.z = 3;
+
+
+const avatarloader = new GLTFLoader();
+
 
 
 var fontcolor = 0x70594D;
@@ -47,13 +50,25 @@ function avatarLoader(name, x, y, z) {
     text.position.z = z;
     scene.add( text );
 
-    var avatar_geometry = new THREE.BoxGeometry( 1, 1, 1 );
-    var avatar_material = new THREE.MeshBasicMaterial( { color: fontcolor } );
-    var avatar = new THREE.Mesh( avatar_geometry, avatar_material );
-    avatar.position.x = x;
-    avatar.position.y = y;
-    avatar.position.z = z;
-    scene.add( avatar );
+    var avatar 
+    avatarloader.load( '/assets/ChrBase.gltf', function ( gltf ) {
+
+        avatar = gltf.scene.children[ 0 ];
+        avatar.material = new THREE.MeshBasicMaterial( { color: 0x70594D } );
+    
+        scene.add( avatar );
+        avatar.scale.set( 0.015, 0.015, 0.015 );
+
+        avatar.position.x = x;
+        avatar.position.y = y;
+        avatar.position.z = z;
+        
+    } );
+
+    //var avatar_geometry = new THREE.BoxGeometry( 1, 1, 1 );
+    //var avatar_material = new THREE.MeshBasicMaterial( { color: fontcolor } );
+    //var avatar = new THREE.Mesh( avatar_geometry, avatar_material );
+    //scene.add( avatar );
 
     })
 }
