@@ -3,7 +3,6 @@ import * as THREE from '/js/three/three.module.js';
 import { FontLoader } from '/js/three/FontLoader.js';
 import { GLTFLoader } from '/js/three/GLTFLoader.js';
 
-
 const canvas = document.querySelector('#threejs');
 
 
@@ -19,8 +18,7 @@ camera.position.z = 3;
 
 
 const avatarloader = new GLTFLoader();
-
-
+const textureLoader = new THREE.TextureLoader();
 
 var fontcolor = 0x70594D;
 
@@ -36,7 +34,7 @@ function avatarLoader(name, x, y, z) {
         side: THREE.DoubleSide
     } );
 
-    const shapes = font.generateShapes( name, 0.3);
+    const shapes = font.generateShapes( name, 0.1);
     const geometry = new THREE.ShapeGeometry( shapes );
     geometry.computeBoundingBox();
 
@@ -44,31 +42,44 @@ function avatarLoader(name, x, y, z) {
     geometry.translate( xMid, 0, 0 );
 
     const text = new THREE.Mesh( geometry, matLite );
-    text.rotation.y = Math.PI;
+    //text.rotation.y = Math.PI;
     text.position.x = x;
-    text.position.y = y + 1.3;
+    text.position.y = y + 1;
     text.position.z = z;
     scene.add( text );
 
     var avatar 
+    var textureMaterial = {};
+
     avatarloader.load( '/assets/ChrBase.gltf', function ( gltf ) {
 
         avatar = gltf.scene.children[ 0 ];
-        avatar.material = new THREE.MeshBasicMaterial( { color: 0x70594D } );
+
+        textureLoader.load(
+            '/assets/ChrBaseTexturem.png',
+            function (texture) {
+                textureMaterial = new THREE.MeshBasicMaterial({
+                    map: texture
+                });
+                console.log(textureMaterial);
+                avatar.material = textureMaterial;
+
+                console.log(avatar);
     
-        scene.add( avatar );
-        avatar.scale.set( 0.015, 0.015, 0.015 );
+                scene.add(avatar);
+            
+                avatar.position.x = x;
+                avatar.position.y = y;
+                avatar.position.z = z;
+                
+            },
+            undefined,
+            function (err) {
+                console.error('텍스쳐 에러');
+            }
+        );
 
-        avatar.position.x = x;
-        avatar.position.y = y;
-        avatar.position.z = z;
-        
     } );
-
-    //var avatar_geometry = new THREE.BoxGeometry( 1, 1, 1 );
-    //var avatar_material = new THREE.MeshBasicMaterial( { color: fontcolor } );
-    //var avatar = new THREE.Mesh( avatar_geometry, avatar_material );
-    //scene.add( avatar );
 
     })
 }
