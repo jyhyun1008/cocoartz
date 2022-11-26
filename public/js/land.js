@@ -17,10 +17,12 @@ renderer.setSize( window.innerWidth, window.innerHeight - 200, false);
 camera.position.z = 3;
 
 
-const avatarloader = new GLTFLoader();
+const avatarload = new GLTFLoader();
 const textureLoader = new THREE.TextureLoader();
 
 var fontcolor = 0x70594D;
+
+let clock, mixer;
 
 function avatarLoader(name, x, y, z) {
 
@@ -44,40 +46,38 @@ function avatarLoader(name, x, y, z) {
     const text = new THREE.Mesh( geometry, matLite );
     //text.rotation.y = Math.PI;
     text.position.x = x;
-    text.position.y = y + 1;
+    text.position.y = y + 1.3;
     text.position.z = z;
     scene.add( text );
 
-    var avatar 
-    var textureMaterial = {};
+    var avatar, avatar0;
 
-    avatarloader.load( '/assets/ChrBase.gltf', function ( gltf ) {
+    avatarload.load( '/assets/ChrBase.gltf', function ( gltf ) {
+        clock = new THREE.Clock();
 
-        avatar = gltf.scene.children[ 0 ];
+        avatar = gltf.scene;
 
-        textureLoader.load(
-            '/assets/ChrBaseTexturem.png',
-            function (texture) {
-                textureMaterial = new THREE.MeshBasicMaterial({
-                    map: texture
-                });
-                console.log(textureMaterial);
-                avatar.material = textureMaterial;
+        avatar.isMesh = true;
+        avatar.type = 'Mesh';
 
-                console.log(avatar);
-    
-                scene.add(avatar);
-            
-                avatar.position.x = x;
-                avatar.position.y = y;
-                avatar.position.z = z;
-                
-            },
-            undefined,
-            function (err) {
-                console.error('텍스쳐 에러');
-            }
-        );
+        avatar0 = avatar.children[0].children[1];
+
+        var texture = new THREE.TextureLoader().load('/assets/ChrBaseTexturem.png');
+        avatar0.material = new THREE.MeshBasicMaterial({ map: texture });
+        scene.add(avatar);
+
+        var skeleton = new THREE.SkeletonHelper( avatar );
+        skeleton.visible = false;
+        avatar.add( skeleton );
+
+        mixer = new THREE.AnimationMixer( avatar );
+        mixer.clipAction( gltf.animations[0]).play();
+
+        avatar.position.x = x;
+        avatar.position.y = y;
+        avatar.position.z = z;
+
+        animate();
 
     } );
 
@@ -98,22 +98,25 @@ socket.on('connect', function(){
 });
 
 document.addEventListener('keydown', function(e){
-    if (e.keyCode==37) { //왼쪽
-        my_position.x = my_position.x - 0.1; 
-        camera.position.x = camera.position.x - 0.1;
-    } else if (e.keyCode==38) { //위
-        my_position.z = my_position.z - 0.1;
-        camera.position.z = camera.position.z - 0.1;
-    } else if (e.keyCode==39) { //오른쪽
-        my_position.x = my_position.x + 0.1;  
-        camera.position.x = camera.position.x + 0.1;
-    } else if (e.keyCode==40) { //아래
-        my_position.z = my_position.z + 0.1;
-        camera.position.z = camera.position.z + 0.1;
+    if (e.keyCode == 37 || e.keyCode == 38  && e.keyCode == 39 || e.keyCode || 40){
+
+        if (e.keyCode==37) { //왼쪽
+            my_position.x = my_position.x - 0.1; 
+            camera.position.x = camera.position.x - 0.1;
+        } else if (e.keyCode==38) { //위
+            my_position.z = my_position.z - 0.1;
+            camera.position.z = camera.position.z - 0.1;
+        } else if (e.keyCode==39) { //오른쪽
+            my_position.x = my_position.x + 0.1;  
+            camera.position.x = camera.position.x + 0.1;
+        } else if (e.keyCode==40) { //아래
+            my_position.z = my_position.z + 0.1;
+            camera.position.z = camera.position.z + 0.1;
+        }
+        controls.target.set(my_position.x, my_position.y, my_position.z);
+        
+        socket.emit('positionChanged', my_name, my_position);
     }
-    controls.target.set(my_position.x, my_position.y, my_position.z);
-    
-    socket.emit('positionChanged', my_name, my_position);
 });
 
 
@@ -141,9 +144,12 @@ controls.enableDamping = true;
 
 var animate = function () {
     requestAnimationFrame( animate );
+
+    if ( mixer ) mixer.update( clock.getDelta() );
+
     controls.update();
 
     renderer.render( scene, camera );
 };
 
-animate();
+//animate();
