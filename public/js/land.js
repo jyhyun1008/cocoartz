@@ -22,7 +22,7 @@ const textureLoader = new THREE.TextureLoader();
 
 var fontcolor = 0x70594D;
 
-let clock, mixer;
+let clock, mixer, mixerhair, mixertop, mixerbottom, mixershoes;
 
 function avatarLoader(name, x, y, z) {
 
@@ -46,38 +46,110 @@ function avatarLoader(name, x, y, z) {
     const text = new THREE.Mesh( geometry, matLite );
     //text.rotation.y = Math.PI;
     text.position.x = x;
-    text.position.y = y + 1.3;
+    text.position.y = y + 1.5;
     text.position.z = z;
     scene.add( text );
 
-    var avatar, avatar0;
+    var avatar, avatartex, file;
 
-    avatarload.load( '/assets/ChrBase.gltf', function ( gltf ) {
+    avatarload.load( '/assets/models/base/ChrBase.gltf', function ( gltf ) {
         clock = new THREE.Clock();
+
+        file = gltf;
 
         avatar = gltf.scene;
 
         avatar.isMesh = true;
         avatar.type = 'Mesh';
 
-        avatar0 = avatar.children[0].children[1];
+        avatartex = avatar.children[0].children[1];
 
-        var texture = new THREE.TextureLoader().load('/assets/ChrBaseTexturem.png');
-        avatar0.material = new THREE.MeshBasicMaterial({ map: texture });
+        var texture = new THREE.TextureLoader().load('/assets/textures/base/ChrBaseTexturem.png');
+        avatartex.material = new THREE.MeshBasicMaterial({ map: texture });
         scene.add(avatar);
 
         var skeleton = new THREE.SkeletonHelper( avatar );
         skeleton.visible = false;
         avatar.add( skeleton );
 
-        mixer = new THREE.AnimationMixer( avatar );
-        mixer.clipAction( gltf.animations[0]).play();
+        var items = { hair:'hair/BasicHair', top: 'top/BasicTop', bottom: 'bottom/BasicPants', shoes:'shoes/BasicShoes'};
 
-        avatar.position.x = x;
-        avatar.position.y = y;
-        avatar.position.z = z;
+        var Meshitems = {}
 
-        animate();
+        avatarload.load('/assets/models/'+items.hair+'.gltf', function( hairitem ){
+            Meshitems.hair = hairitem;
+            Meshitems.hair.scene = hairitem.scene;
+            Meshitems.hair.scene.isMesh = true;
+            Meshitems.hair.scene.type = 'Mesh';
+            Meshitems.hair.scene.children[0].children[1].material = new THREE.MeshBasicMaterial({ map: new THREE.TextureLoader().load('/assets/textures/'+items.hair+'m.png') });
+            scene.add(Meshitems.hair.scene);
+            Meshitems.hair.scene.add( skeleton );
+
+            avatarload.load('/assets/models/'+items.top+'.gltf', function( topitem ){
+                Meshitems.top = topitem;
+                Meshitems.top.scene = topitem.scene;
+                Meshitems.top.scene.isMesh = true;
+                Meshitems.top.scene.type = 'Mesh';
+                Meshitems.top.scene.children[0].children[1].material = new THREE.MeshBasicMaterial({ map: new THREE.TextureLoader().load('/assets/textures/'+items.top+'m.png') });
+                scene.add(Meshitems.top.scene);
+                Meshitems.top.scene.add( skeleton );
+
+                avatarload.load('/assets/models/'+items.bottom+'.gltf', function( bottomitem ){
+                    Meshitems.bottom = bottomitem;
+                    Meshitems.bottom.scene = bottomitem.scene;
+                    Meshitems.bottom.scene.isMesh = true;
+                    Meshitems.bottom.scene.type = 'Mesh';
+                    Meshitems.bottom.scene.children[0].children[1].material = new THREE.MeshBasicMaterial({ map: new THREE.TextureLoader().load('/assets/textures/'+items.bottom+'m.png') });
+                    scene.add(Meshitems.bottom.scene);
+                    Meshitems.bottom.scene.add( skeleton );
+
+                    avatarload.load('/assets/models/'+items.shoes+'.gltf', function( shoesitem ){
+                        Meshitems.shoes = shoesitem;
+                        Meshitems.shoes.scene = shoesitem.scene;
+                        Meshitems.shoes.scene.isMesh = true;
+                        Meshitems.shoes.scene.type = 'Mesh';
+                        Meshitems.shoes.scene.children[0].children[1].material = new THREE.MeshBasicMaterial({ map: new THREE.TextureLoader().load('/assets/textures/'+items.shoes+'m.png') });
+                        scene.add(Meshitems.shoes.scene);
+                        Meshitems.shoes.scene.add( skeleton );
+
+                        mixer = new THREE.AnimationMixer( avatar );
+                        mixer.clipAction( gltf.animations[0]).play();
+        
+                        mixerhair = new THREE.AnimationMixer( Meshitems.hair.scene );
+                        mixerhair.clipAction( gltf.animations[0]).play();
+        
+                        mixertop = new THREE.AnimationMixer( Meshitems.top.scene );
+                        mixertop.clipAction( gltf.animations[0]).play();
+
+                        mixerbottom = new THREE.AnimationMixer( Meshitems.bottom.scene );
+                        mixerbottom.clipAction( gltf.animations[0]).play();
+        
+                        mixershoes = new THREE.AnimationMixer( Meshitems.shoes.scene );
+                        mixershoes.clipAction( gltf.animations[0]).play();
+
+                        avatar.position.x = x;
+                        avatar.position.y = y;
+                        avatar.position.z = z;
+
+                        for (var key in items) {
+                            eval('Meshitems.'+key+'.scene.position.x = x;');
+                            eval('Meshitems.'+key+'.scene.position.y = y;');
+                            eval('Meshitems.'+key+'.scene.position.z = z;');
+
+                            //eval('Meshitems.'+key+'.scene.scale.x = 1.04;');
+                            //eval('Meshitems.'+key+'.scene.scale.y = 1.04;');
+                            //eval('Meshitems.'+key+'.scene.scale.z = 1.04;');
+                        }
+        
+                        animate();
+
+                    });
+
+                });
+
+            });
+
+        });
 
     } );
 
@@ -98,7 +170,7 @@ socket.on('connect', function(){
 });
 
 document.addEventListener('keydown', function(e){
-    if (e.keyCode == 37 || e.keyCode == 38  && e.keyCode == 39 || e.keyCode || 40){
+    if (e.keyCode == 37 || e.keyCode == 38  || e.keyCode == 39 || e.keyCode == 40){
 
         if (e.keyCode==37) { //왼쪽
             my_position.x = my_position.x - 0.1; 
@@ -121,18 +193,18 @@ document.addEventListener('keydown', function(e){
 
 
 socket.on('loadUserAvatar', function(avatar){
-        scene = new THREE.Scene();
-        scene.background = new THREE.Color( 0xF0EEE4 );
+    scene = new THREE.Scene();
+    scene.background = new THREE.Color( 0xF0EEE4 );
 
-        for(var key in avatar.user){
-            var x = avatar.user[key].position.x;
-            var y = avatar.user[key].position.y;
-            var z = avatar.user[key].position.z;
+    for(var key in avatar.user){
+        var x = avatar.user[key].position.x;
+        var y = avatar.user[key].position.y;
+        var z = avatar.user[key].position.z;
 
-            avatarLoader(key, x, y, z);
-        }
-        controls.update();
-        renderer.render( scene, camera );
+        avatarLoader(key, x, y, z);
+    }
+    controls.update();
+    //renderer.render( scene, camera );
 
 })
 
@@ -144,11 +216,13 @@ controls.enableDamping = true;
 
 var animate = function () {
     requestAnimationFrame( animate );
-
-    if ( mixer ) mixer.update( clock.getDelta() );
-
+    var now = clock.getDelta();
+    if ( mixer ) mixer.update( now );
+    if ( mixerhair ) mixerhair.update( now );
+    if ( mixertop ) mixertop.update( now );
+    if ( mixerbottom ) mixerbottom.update( now );
+    if ( mixershoes ) mixershoes.update( now );
     controls.update();
-
     renderer.render( scene, camera );
 };
 
