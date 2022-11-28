@@ -114,6 +114,8 @@ io.sockets.on('connection', function(socket){
         eval(room_id+"_User."+name+".position.x = "+position.x);
         eval(room_id+"_User."+name+".position.y = "+position.y);
         eval(room_id+"_User."+name+".position.z = "+position.z);
+        eval(room_id+"_User."+name+".position.dir = "+position.dir);
+
 
         io.sockets.emit('loadNewbieAvatar', {
             newbie : name,
@@ -150,13 +152,16 @@ io.sockets.on('connection', function(socket){
             prex : eval(room_id+"_User."+name+".position.x"),
             prey : eval(room_id+"_User."+name+".position.y"),
             prez : eval(room_id+"_User."+name+".position.z"),
+            predir : eval(room_id+"_User."+name+".position.dir"),
             posx : position.x,
             posy : position.y,
-            posz : position.z
+            posz : position.z,
+            posdir : position.dir
         })
         eval(room_id+"_User."+name+".position.x = "+position.x);
         eval(room_id+"_User."+name+".position.y = "+position.y);
         eval(room_id+"_User."+name+".position.z = "+position.z);
+        eval(room_id+"_User."+name+".position.dir = "+position.dir);
     })
 });
 

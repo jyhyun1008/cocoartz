@@ -17,18 +17,26 @@ camera.position.z = 3;
 
 
 const avatarload = new GLTFLoader();
+const landload = new GLTFLoader();
 const textureLoader = new THREE.TextureLoader();
 
 var itemArr = ['hair', 'top', 'bottom', 'shoes'];
 var pose = [];
-avatarload.load( '/assets/models/base/ChrBase.gltf', function ( motion ) {
-    pose.push(motion.animations[0]);
+var action = [];
+
+avatarload.load( '/assets/poses/standingPose.gltf', function ( standing ) {
+    pose.push(standing.animations[0]);
+
+    avatarload.load( '/assets/models/base/ChrBase.gltf', function ( walking ) {
+        pose.push(walking.animations[0]);
+    });
 });
+
+console.log(pose);
 
 var fontcolor = 0x70594D;
 
 var clock = new THREE.Clock();
-//let mixer, mixerhair, mixertop, mixerbottom, mixershoes;
 
 var connectedUsers = [];
 var mixer = [];
@@ -36,7 +44,20 @@ var index = 0;
 
 var sceneAnimation;
 
-function avatarLoader(name, x, y, z) {
+function landLoader(){
+    landload.load( '/assets/models/land/IslandBase.gltf', function ( gltf ) {
+        var land = gltf.scene;
+
+        console.log(land);
+        
+        land.children[0].material = new THREE.MeshBasicMaterial({ color: 0x009900 });
+        land.itemType = 'space';
+        scene.add( land );
+        actionPusher('land', pose);
+    });
+}
+
+function avatarLoader(name, x, y, z, dir) {
 
     //scene.children[number] = {children: []};
 
@@ -65,9 +86,10 @@ function avatarLoader(name, x, y, z) {
         text.position.y = y + 1.5;
         text.position.z = z;
 
+        text.itemType = 'text';
+
         scene.add( text );
-        connectedUsers[index] = name;
-        index++;
+        actionPusher(name, pose);
 
     });
 
@@ -87,13 +109,18 @@ function avatarLoader(name, x, y, z) {
         skeleton = new THREE.SkeletonHelper( base );
         skeleton.visible = false;
 
+        base.itemType = 'avatar';
+
+        base.position.x = x;
+        base.position.y = y;
+        base.position.z = z;
+        base.children[0].rotation.z = dir;
+
         scene.add( base );
         base.add( skeleton );
 
         eval('mixer['+index+'] = new THREE.AnimationMixer( base )');
-
-        connectedUsers[index] = name;
-        index++;
+        actionPusher(name, pose);
 
 
     });
@@ -106,24 +133,37 @@ function avatarLoader(name, x, y, z) {
 
 
         for(var i=0; i<itemArr.length; i++){
-            (x => {
+            (a => {
               setTimeout(() => {
                 
-            avatarload.load('/assets/models/'+eval('items.'+itemArr[x])+'.gltf', function( item ){
-                eval('Meshs.'+itemArr[x]+' = item');
-                eval('Meshs.'+itemArr[x]+'.scene = item.scene');
-                eval('Meshs.'+itemArr[x]+'.scene.isMesh = true');
-                eval('Meshs.'+itemArr[x]+'.scene.type = "Mesh"');
-                var itemString = eval('items.'+itemArr[x]);
-                eval("Meshs."+itemArr[x]+".scene.children[0].children[1].material = new THREE.MeshBasicMaterial({ map: new THREE.TextureLoader().load('/assets/textures/'+itemString+'m.png') });");
-                eval('scene.add( Meshs.'+itemArr[x]+'.scene );');
-                eval('Meshs.'+itemArr[x]+'.scene.add( skeleton );');
-                eval('mixer['+index+'] = new THREE.AnimationMixer( Meshs.'+itemArr[x]+'.scene )');
-                connectedUsers[index] = name;
-                index++;
-                if (x == itemArr.length - 1) {
-                    animate();
+            avatarload.load('/assets/models/'+eval('items.'+itemArr[a])+'.gltf', function( item ){
+                eval('Meshs.'+itemArr[a]+' = item');
+                eval('Meshs.'+itemArr[a]+'.scene = item.scene');
+                eval('Meshs.'+itemArr[a]+'.scene.isMesh = true');
+                eval('Meshs.'+itemArr[a]+'.scene.type = "Mesh"');
+                var itemString = eval('items.'+itemArr[a]);
+                eval('Meshs.'+itemArr[a]+'.scene.position.x = x');
+                eval('Meshs.'+itemArr[a]+'.scene.position.y = y');
+                eval('Meshs.'+itemArr[a]+'.scene.position.z = z');
+                eval('Meshs.'+itemArr[a]+'.scene.children[0].rotation.z = dir');
+                eval("Meshs."+itemArr[a]+".scene.children[0].children[1].material = new THREE.MeshBasicMaterial({ map: new THREE.TextureLoader().load('/assets/textures/'+itemString+'m.png') });");
+                eval('Meshs.'+itemArr[a]+'.scene.itemType = "avatar";');
+
+                eval('scene.add( Meshs.'+itemArr[a]+'.scene );');
+                eval('Meshs.'+itemArr[a]+'.scene.add( skeleton );');
+                eval('mixer['+index+'] = new THREE.AnimationMixer( Meshs.'+itemArr[a]+'.scene )');
+                actionPusher(name, pose);
+                
+                if (a == itemArr.length - 1) {
+
+                    console.log(action);
+                    
+                    setTimeout(()=>{
+                        animate();
+                    }, 500)
                 }
+
+                
             })
               },15*x)
             })(i)
@@ -133,12 +173,25 @@ function avatarLoader(name, x, y, z) {
 
 }
 
+function actionPusher(name, pose){
+
+    connectedUsers[index] = name;
+    action.push([]);
+    for (var j=0; j < pose.length; j++){
+        if (mixer[index] !== undefined){
+            action[index].push( mixer[index].clipAction( pose[j] ).play() );
+        }
+    }
+    index++;
+}
+
 var my_name = document.querySelector(".width-400px").id.substring(7);
 
 var my_position = {
     x: 0,
     y: 0,
-    z: 0
+    z: 0,
+    dir: 0
 };
 
 var socket = io();
@@ -149,14 +202,34 @@ socket.on('connect', function(){
 document.addEventListener('keydown', function(e){
     if (e.keyCode == 37 || e.keyCode == 38  || e.keyCode == 39 || e.keyCode == 40){
 
+        var xdir = my_position.x - camera.position.x;
+        var zdir = camera.position.z - my_position.z;
+
+        if (zdir > 0){
+            console.log("카메라 위치가 +예요!")
+            my_position.dir = (Math.atan((xdir)/(zdir)))%(2*Math.PI);
+        } else {
+            console.log("카메라 위치가 -예요!")
+            my_position.dir = (-Math.PI + Math.atan((xdir)/(zdir)))%(2*Math.PI);
+        }
+
         if (e.keyCode==37) { //왼쪽
-            my_position.x = my_position.x + 1; 
+            my_position.x -= 2* Math.cos(my_position.dir);
+            my_position.z -= 2* Math.sin(my_position.dir);
+            console.log(my_position.x, my_position.z, my_position.dir*180/Math.PI);
+            my_position.dir -= Math.PI/2;
         } else if (e.keyCode==38) { //위
-            my_position.z = my_position.z + 1;
+            my_position.x += 2* Math.sin(my_position.dir);
+            my_position.z -= 2* Math.cos(my_position.dir);
         } else if (e.keyCode==39) { //오른쪽
-            my_position.x = my_position.x - 1;  
+            my_position.x += 2* Math.cos(my_position.dir);
+            my_position.z += 2* Math.sin(my_position.dir);
+            console.log(my_position.x, my_position.z, my_position.dir*180/Math.PI);
+            my_position.dir += Math.PI/2;
         } else if (e.keyCode==40) { //아래
-            my_position.z = my_position.z - 1;
+            my_position.x -= 2* Math.sin(my_position.dir);
+            my_position.z += 2* Math.cos(my_position.dir);
+            my_position.dir += Math.PI
         }
         //controls.target.set(my_position.x, my_position.y, my_position.z);
         
@@ -170,17 +243,19 @@ socket.on('loadNewbieAvatar', function(avatar){
         scene = new THREE.Scene();
         scene.background = new THREE.Color( 0xF0EEE4 );
     
+        landLoader();
         for(var key in avatar.user){
             var x = avatar.user[key].position.x;
             var y = avatar.user[key].position.y;
             var z = avatar.user[key].position.z;
+            var dir = avatar.user[key].position.dir + Math.PI;
     
-            avatarLoader(key, x, y, z);
+            avatarLoader(key, x, y, z, dir);
         }
         controls.update();
     } else {
         var key = avatar.newbie;
-        avatarLoader(avatar.newbie, avatar.user[key].position.x, avatar.user[key].position.y, avatar.user[key].position.z);
+        avatarLoader(avatar.newbie, avatar.user[key].position.x, avatar.user[key].position.y, avatar.user[key].position.z, avatar.user[key].position.dir+Math.PI);
         controls.update();
     }
 })
@@ -190,6 +265,7 @@ socket.on('disconnectAvatar', function(avatar){
 
         for(var i = 0; i < connectedUsers.length; i++){
             if (connectedUsers[i] == avatar.oldbie){
+                action.splice(i, 1);
                 mixer.splice(i, 1);
                 connectedUsers.splice(i, 1);
                 scene.children.splice(i, 1);
@@ -204,9 +280,14 @@ socket.on('disconnectAvatar', function(avatar){
 })
 
 socket.on('loadUserPosition', function(avatar){
-    cancelAnimationFrame( sceneAnimation );
     var start = new Date();
-    animateWalk(avatar, start);
+
+    var cam = {};
+    cam.prex = camera.position.x;
+    cam.prey = camera.position.y;
+    cam.prez = camera.position.z;
+
+    animateWalk(cam, avatar, start);
     controls.update();
 })
 
@@ -216,47 +297,80 @@ controls.enablePan = false;
 controls.enableDamping = true;
 
 var animate = function () {
-    sceneAnimation = requestAnimationFrame( animate );
+    requestAnimationFrame( animate );
+    var now = clock.getDelta();
+    for(var i = 0; i < connectedUsers.length; i++){
+        if ( scene.children[i].itemType == 'avatar' ){
+            for (var j = 0; j < pose.length; j++){
+                if (j == 0){
+                    action[i][j].weight=1;
+                } else {
+                    action[i][j].weight=0;
+                }
+            }
+            mixer[i].update(now);
+        }
+    }
+    setTimeout(()=>{
 
     controls.update();
     renderer.render( scene, camera );
+
+    }, 10);
 };
 
-function animateWalk(userId, startTime) {
-    
+function animateWalk(cam, userId, startTime) {
+
     var now = clock.getDelta();
     var timeDiff = new Date() - startTime;
 
     for(var i = 0; i < connectedUsers.length; i++){
         
         if (connectedUsers[i] == userId.name){
-            scene.children[i].position.x += timeDiff/1000/30 * (userId.posx - userId.prex);
-            scene.children[i].position.y += timeDiff/1000/30 * (userId.posy - userId.prey);
-            scene.children[i].position.z += timeDiff/1000/30 * (userId.posz - userId.prez);
-            if ( scene.children[i].children.length > 0 ) {
-                mixer[i].clipAction( pose[0] ).play();
+            var divider = 1000;
+
+            scene.children[i].position.x = userId.prex + timeDiff/divider * (userId.posx - userId.prex);
+            scene.children[i].position.y = userId.prey + timeDiff/divider * (userId.posy - userId.prey);
+            scene.children[i].position.z = userId.prez + timeDiff/divider * (userId.posz - userId.prez);
+            if ( scene.children[i].itemType == 'avatar' ) {
+                scene.children[i].children[0].rotation.z = userId.posdir + Math.PI;
+
+                for (var j = 0; j < pose.length; j++){
+                    if (j == 1){
+                        action[i][j].weight=1;
+                    } else {
+                        action[i][j].weight=0;
+                    }
+                }
                 mixer[i].update(now);
+                
             } else {
                 if (my_name == userId.name){
-                    camera.position.x += timeDiff/1000/30 * (userId.posx - userId.prex);
-                    camera.position.y += timeDiff/1000/30 * (userId.posy - userId.prey);
-                    camera.position.z += timeDiff/1000/30 * (userId.posz - userId.prez);
-                    controls.target.set(scene.children[i].position.x, scene.children[i].position.y - 1.5, scene.children[i].position.z);
+                
+                    cam.posx = userId.prex;
+                    cam.posy = userId.prey+1.5;
+                    cam.posz = userId.prez;
+
+                    camera.position.x = cam.prex + timeDiff/1000 * (cam.posx - cam.prex);
+                    camera.position.y = cam.prey + timeDiff/1000 * (cam.posy - cam.prey);
+                    camera.position.z = cam.prez + timeDiff/1000 * (cam.posz - cam.prez);
+                    controls.target.set(scene.children[i].position.x, scene.children[i].position.y , scene.children[i].position.z);
+
                 }
             }
         }
     }
 
-    setTimeout(()=>{
+    //setTimeout(()=>{
         controls.update();
         renderer.render( scene, camera );
-    }, 0)
+    //}, 0)
 
     if (timeDiff < 1000) {
-        sceneAnimation = requestAnimationFrame( function(){
-            animateWalk(userId, startTime);
+        requestAnimationFrame( function(){
+            animateWalk(cam, userId, startTime);
         } );
-    } else {
+    } else if (timeDiff >= 1000) {
         animate();
     }
 }
