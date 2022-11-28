@@ -115,7 +115,8 @@ io.sockets.on('connection', function(socket){
         eval(room_id+"_User."+name+".position.y = "+position.y);
         eval(room_id+"_User."+name+".position.z = "+position.z);
 
-        io.sockets.emit('loadUserAvatar', {
+        io.sockets.emit('loadNewbieAvatar', {
+            newbie : name,
             user : eval(room_id+"_User")
         })
 
@@ -128,8 +129,8 @@ io.sockets.on('connection', function(socket){
     socket.on('disconnect', function(){
         eval("delete "+room_id+"_User."+socket.name);
 
-        io.sockets.emit('loadUserAvatar', {
-            user : eval(room_id+"_User")
+        io.sockets.emit('disconnectAvatar', {
+            oldbie : socket.name
         })
 
         io.sockets.emit('updateMessage', {
@@ -144,12 +145,18 @@ io.sockets.on('connection', function(socket){
     });
     
     socket.on('positionChanged', function(name, position){
+        io.sockets.emit('loadUserPosition', {
+            name : name,
+            prex : eval(room_id+"_User."+name+".position.x"),
+            prey : eval(room_id+"_User."+name+".position.y"),
+            prez : eval(room_id+"_User."+name+".position.z"),
+            posx : position.x,
+            posy : position.y,
+            posz : position.z
+        })
         eval(room_id+"_User."+name+".position.x = "+position.x);
         eval(room_id+"_User."+name+".position.y = "+position.y);
         eval(room_id+"_User."+name+".position.z = "+position.z);
-        io.sockets.emit('loadUserAvatar', {
-            user : eval(room_id+"_User")
-        })
     })
 });
 
