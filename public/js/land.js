@@ -4,17 +4,39 @@ import { FontLoader } from '/js/three/FontLoader.js';
 import { GLTFLoader } from '/js/three/GLTFLoader.js';
 
 const canvas = document.querySelector('#threejs');
-
 var scene = new THREE.Scene();
 scene.background = new THREE.Color( 0xF0EEE4 );
 
 var camera = new THREE.PerspectiveCamera( 75, window.innerWidth / (window.innerHeight - 200), 0.1, 1000 );
-var renderer = new THREE.WebGLRenderer({ canvas, alpha: false, });
-
-renderer.setSize( window.innerWidth, window.innerHeight - 200, false);
-
 camera.position.z = 3;
 
+var renderer = new THREE.WebGLRenderer({ canvas, alpha: false, });
+renderer.setSize( window.innerWidth, window.innerHeight - 200, false);
+
+var controls = new OrbitControls( camera, renderer.domElement );
+controls.update();
+controls.enablePan = false;
+controls.enableDamping = true;
+
+window.addEventListener('resize', function () { 
+
+    var newCamera = new THREE.PerspectiveCamera( 75, window.innerWidth / (window.innerHeight - 200), 0.1, 1000 );
+    renderer.setSize( window.innerWidth, window.innerHeight - 200, false);
+
+    setTimeout(()=>{
+        newCamera.position.x = camera.position.x;
+        newCamera.position.y = camera.position.y;
+        newCamera.position.z = camera.position.z;
+        camera = newCamera;
+
+        controls = new OrbitControls( camera, renderer.domElement );
+        controls.target.set(my_position.x, my_position.y + 1.0, my_position.z);
+        controls.update();
+        controls.enablePan = false;
+        controls.enableDamping = true;
+    }, 0)
+
+});
 
 const avatarload = new GLTFLoader();
 const landload = new GLTFLoader();
@@ -32,8 +54,6 @@ avatarload.load( '/assets/poses/standingPose.gltf', function ( standing ) {
     });
 });
 
-console.log(pose);
-
 var fontcolor = 0x70594D;
 
 var clock = new THREE.Clock();
@@ -47,19 +67,25 @@ var sceneAnimation;
 function landLoader(){
     landload.load( '/assets/models/land/IslandBase.gltf', function ( gltf ) {
         var land = gltf.scene;
-
-        console.log(land);
         
         land.children[0].material = new THREE.MeshBasicMaterial({ color: 0x009900 });
+        land.children[0].material.side = THREE.DoubleSide;
         land.itemType = 'space';
         scene.add( land );
+        actionPusher('land', pose);
+    });
+    landload.load( '/assets/models/land/SkyBase.gltf', function ( gltf ) {
+        var sky = gltf.scene;
+        
+        sky.children[0].material = new THREE.MeshBasicMaterial({ color: 0x00eeff });
+        sky.children[0].material.side = THREE.BackSide;
+        sky.itemType = 'space';
+        scene.add( sky );
         actionPusher('land', pose);
     });
 }
 
 function avatarLoader(name, x, y, z, dir) {
-
-    //scene.children[number] = {children: []};
 
     var text;
 
@@ -131,7 +157,6 @@ function avatarLoader(name, x, y, z, dir) {
 
     setTimeout(() => {
 
-
         for(var i=0; i<itemArr.length; i++){
             (a => {
               setTimeout(() => {
@@ -147,6 +172,7 @@ function avatarLoader(name, x, y, z, dir) {
                 eval('Meshs.'+itemArr[a]+'.scene.position.z = z');
                 eval('Meshs.'+itemArr[a]+'.scene.children[0].rotation.z = dir');
                 eval("Meshs."+itemArr[a]+".scene.children[0].children[1].material = new THREE.MeshBasicMaterial({ map: new THREE.TextureLoader().load('/assets/textures/'+itemString+'m.png') });");
+                eval('Meshs.'+itemArr[a]+'.scene.children[0].children[1].material.side = THREE.DoubleSide;');
                 eval('Meshs.'+itemArr[a]+'.scene.itemType = "avatar";');
 
                 eval('scene.add( Meshs.'+itemArr[a]+'.scene );');
@@ -155,21 +181,18 @@ function avatarLoader(name, x, y, z, dir) {
                 actionPusher(name, pose);
                 
                 if (a == itemArr.length - 1) {
-
-                    console.log(action);
-                    
                     setTimeout(()=>{
                         animate();
-                    }, 500)
+                    }, 2000)
                 }
 
                 
             })
-              },15*x)
+              },10*x)
             })(i)
         }
 
-    }, 100)
+    }, 50)
 
 }
 
@@ -206,17 +229,14 @@ document.addEventListener('keydown', function(e){
         var zdir = camera.position.z - my_position.z;
 
         if (zdir > 0){
-            console.log("카메라 위치가 +예요!")
             my_position.dir = (Math.atan((xdir)/(zdir)))%(2*Math.PI);
         } else {
-            console.log("카메라 위치가 -예요!")
             my_position.dir = (-Math.PI + Math.atan((xdir)/(zdir)))%(2*Math.PI);
         }
 
         if (e.keyCode==37) { //왼쪽
             my_position.x -= 2* Math.cos(my_position.dir);
             my_position.z -= 2* Math.sin(my_position.dir);
-            console.log(my_position.x, my_position.z, my_position.dir*180/Math.PI);
             my_position.dir -= Math.PI/2;
         } else if (e.keyCode==38) { //위
             my_position.x += 2* Math.sin(my_position.dir);
@@ -224,14 +244,12 @@ document.addEventListener('keydown', function(e){
         } else if (e.keyCode==39) { //오른쪽
             my_position.x += 2* Math.cos(my_position.dir);
             my_position.z += 2* Math.sin(my_position.dir);
-            console.log(my_position.x, my_position.z, my_position.dir*180/Math.PI);
             my_position.dir += Math.PI/2;
         } else if (e.keyCode==40) { //아래
             my_position.x -= 2* Math.sin(my_position.dir);
             my_position.z += 2* Math.cos(my_position.dir);
             my_position.dir += Math.PI
         }
-        //controls.target.set(my_position.x, my_position.y, my_position.z);
         
         socket.emit('positionChanged', my_name, my_position);
     }
@@ -241,7 +259,7 @@ document.addEventListener('keydown', function(e){
 socket.on('loadNewbieAvatar', function(avatar){
     if (avatar.newbie == my_name) {
         scene = new THREE.Scene();
-        scene.background = new THREE.Color( 0xF0EEE4 );
+        scene.background = new THREE.Color( 0x00EEFF );
     
         landLoader();
         for(var key in avatar.user){
@@ -252,6 +270,7 @@ socket.on('loadNewbieAvatar', function(avatar){
     
             avatarLoader(key, x, y, z, dir);
         }
+        controls.target.set(my_position.x, my_position.y + 1.0, my_position.z);
         controls.update();
     } else {
         var key = avatar.newbie;
@@ -291,10 +310,6 @@ socket.on('loadUserPosition', function(avatar){
     controls.update();
 })
 
-const controls = new OrbitControls( camera, renderer.domElement );
-controls.update();
-controls.enablePan = false;
-controls.enableDamping = true;
 
 var animate = function () {
     requestAnimationFrame( animate );
@@ -316,7 +331,7 @@ var animate = function () {
     controls.update();
     renderer.render( scene, camera );
 
-    }, 10);
+    }, 16);
 };
 
 function animateWalk(cam, userId, startTime) {
@@ -354,7 +369,7 @@ function animateWalk(cam, userId, startTime) {
                     camera.position.x = cam.prex + timeDiff/1000 * (cam.posx - cam.prex);
                     camera.position.y = cam.prey + timeDiff/1000 * (cam.posy - cam.prey);
                     camera.position.z = cam.prez + timeDiff/1000 * (cam.posz - cam.prez);
-                    controls.target.set(scene.children[i].position.x, scene.children[i].position.y , scene.children[i].position.z);
+                    controls.target.set(scene.children[i].position.x, scene.children[i].position.y + 1.0, scene.children[i].position.z);
 
                 }
             }
