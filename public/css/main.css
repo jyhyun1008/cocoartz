@@ -64,7 +64,6 @@ code, .output__user__name{
     color: var(--accenttext);
     border-radius: 15px;
     padding: 5px;
-    width: 20%;
     margin-right:10px;
 }
 
@@ -208,8 +207,4 @@ code, .output__user__name{
     font-size: 12px;
     color: var(--accent);
     text-align: center;
-}
-
-canvas.dayNight {
-    transition: background-color 600s ease;
 }

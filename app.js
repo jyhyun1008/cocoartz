@@ -66,7 +66,6 @@ app.get('/land/:landID', function (req, res) {
     var sunrise = mod(new Date(getSunrise(36.3, 127.4)).getTime()+32400000, 86400000);
     var sunset = mod(new Date(getSunset(36.3, 127.4)).getTime()+32400000, 86400000);
     var today = mod(new Date().getTime()+32400000, 86400000);
-    console.log(sunrise, today, sunset);
     res.render('land', { landID: req.params.landID, sunrise: sunrise, sunset: sunset, userID: cookie.userID, userName: cookie.userName, isLogin: cookie.isLogin, msg: cookie.msg});
 });
 

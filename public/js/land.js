@@ -314,7 +314,6 @@ document.addEventListener('keydown', function(e){
 function onPointerMove( event ) {
     pointer.x = (( event.clientX / window.innerWidth ) * 2 - 1);
     pointer.y = (- ( (event.clientY-100) / (window.innerHeight - 200) ) * 2 + 1);
-    
     plainpointer.x = event.clientX;
     plainpointer.y = event.clientY;
 }
@@ -460,76 +459,56 @@ function animateWalk(cam, userId, startTime) {
 function render() {
     raycaster.setFromCamera( pointer, camera );
     const intersects = raycaster.intersectObjects( scene.children, true );
-    for ( var i = 0; i <intersects.length; i++){
-        if (intersects[i].object.type == "SkeletonHelper"){
+    for ( var i = 0; i < intersects.length; i++){
+        if (intersects[i].object.type == "SkeletonHelper" || intersects[i].object.parent.itemType == 'space'){
             intersects.splice(i, 1);
             i--;
         }
     }
-    if ( intersects.length > 0 && intersects[0].object.type != "SkeletonHelper" ) {
+        if ( intersects.length > 0) {
+            if (INTERSECTED != intersects[0].object){
+                if (INTERSECTED) {
 
-        if ( INTERSECTED == intersects[ 0 ].object ) {
+                    if (document.querySelector('.nameTag')){
+                        var removeDiv = document.querySelector('.nameTag');
+                        removeDiv.remove();
+                    }
+                    INTERSECTED.material.color.r = 1;
+                    INTERSECTED.material.color.g = 1;
+                    INTERSECTED.material.color.b = 1;
+                }
 
-            //if (INTERSECTED.material.color === undefined) {
-                //INTERSECTED.material.color.r = 1;
-                //INTERSECTED.material.color.g = 1;
-                //INTERSECTED.material.color.b = 1;
-            //}
+                INTERSECTED = intersects[0].object;
+                if (document.getElementsByClassName('nameTag').length == 0 && INTERSECTED.parent.parent.itemType){
 
-            //INTERSECTED.currentHex.r = INTERSECTED.material.color.r;
-            //INTERSECTED.currentHex.g = INTERSECTED.material.color.g;
-            //INTERSECTED.currentHex.b = INTERSECTED.material.color.b;
+                    var newDiv = document.createElement("div");
+                    newDiv.style.position = "fixed";
+                    newDiv.style.zIndex = 2;
+                    newDiv.classList.add('nameTag');
+                    newDiv.classList.add('output__user__name');
+                    newDiv.style.left = plainpointer.x;
+                    newDiv.style.top = plainpointer.y;
+                    var newContent = document.createTextNode(INTERSECTED.parent.parent.userName);
+                    newDiv.appendChild(newContent);
+                    document.getElementsByClassName("width-400px")[0].appendChild(newDiv);
 
-            //INTERSECTED.material.color.r=1;
-            //INTERSECTED.material.color.g=0;
-            //INTERSECTED.material.color.b=0;
-
-            if (document.getElementsByClassName('nameTag').length == 0 && INTERSECTED.parent.parent.itemType){
-                //console.log(INTERSECTED)
-
-                var newDiv = document.createElement("div");
-                newDiv.style.position = "fixed";
-                newDiv.style.zIndex = 2;
-                newDiv.classList.add('nameTag');
-                newDiv.style.left = plainpointer.x;
-                newDiv.style.top = plainpointer.y;
-                newDiv.style.backgroundColor = '#70594D';
-                newDiv.style.color = '#F0EEE4';
-                newDiv.style.borderRadius = '15px';
-                //var newContent = document.createTextNode(INTERSECTED.name);
-
-                var newContent = document.createTextNode(INTERSECTED.parent.parent.userName);
-                newDiv.appendChild(newContent);
-                document.getElementsByClassName("width-400px")[0].appendChild(newDiv);
+                    INTERSECTED.material.color.r=1;
+                    INTERSECTED.material.color.g=0.8;
+                    INTERSECTED.material.color.b=0.7;
+                }
             }
 
         } else {
-            
-            INTERSECTED = intersects[ 0 ].object;
-            //INTERSECTED.currentHex = {};
-            //console.log(intersects);
             if (document.querySelector('.nameTag')){
                 var removeDiv = document.querySelector('.nameTag');
                 removeDiv.remove();
             }
-            if ( INTERSECTED ){
-                //INTERSECTED.material.color.r = INTERSECTED.currentHex.r;
-                //INTERSECTED.material.color.g = INTERSECTED.currentHex.g;
-                //INTERSECTED.material.color.b = INTERSECTED.currentHex.b;
+            if ( INTERSECTED ) {
+                INTERSECTED.material.color.r = 1;              
+                INTERSECTED.material.color.g = 1;
+                INTERSECTED.material.color.b = 1;
             }
+            INTERSECTED = null;
         }
-
-    } else {
-        if (document.querySelector('.nameTag')){
-            var removeDiv = document.querySelector('.nameTag');
-            removeDiv.remove();
-        }
-        if ( INTERSECTED ) {
-            //INTERSECTED.material.color.r = INTERSECTED.currentHex.r;              
-            //INTERSECTED.material.color.g = INTERSECTED.currentHex.g;
-            //INTERSECTED.material.color.b = INTERSECTED.currentHex.b;
-        }
-        INTERSECTED = null;
-    }
-    renderer.render( scene, camera );
+        renderer.render( scene, camera );
 }
