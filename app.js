@@ -5,8 +5,9 @@ const http = require('http');
 const app = express();
 const path = require('path');
 const server = http.createServer(app);
-const cookieParser = require('cookie-parser')
+const cookieParser = require('cookie-parser');
 const { checkLogin } = require("./module/checkLogin.js");
+const { getSunrise, getSunset } = require('sunrise-sunset-js');
 
 // DB 연결부
 
@@ -55,9 +56,18 @@ app.get('/guest', function (req, res) {
     cookie = checkLogin(req, db).cookie;
     res.render('guest', { userID: cookie.userID, userName: cookie.userName, isLogin: cookie.isLogin, msg: cookie.msg});
 });
+
+function mod(n, m) {
+    return ((n % m) + m) % m;
+  }
+
 app.get('/land/:landID', function (req, res) {
     cookie = checkLogin(req, db).cookie;
-    res.render('land', { landID: req.params.landID, userID: cookie.userID, userName: cookie.userName, isLogin: cookie.isLogin, msg: cookie.msg});
+    var sunrise = mod(new Date(getSunrise(36.3, 127.4)).getTime()+32400000, 86400000);
+    var sunset = mod(new Date(getSunset(36.3, 127.4)).getTime()+32400000, 86400000);
+    var today = mod(new Date().getTime()+32400000, 86400000);
+    console.log(sunrise, today, sunset);
+    res.render('land', { landID: req.params.landID, sunrise: sunrise, sunset: sunset, userID: cookie.userID, userName: cookie.userName, isLogin: cookie.isLogin, msg: cookie.msg});
 });
 
 app.get('/login', function (req, res) {
@@ -105,6 +115,7 @@ eval("var "+room_id+"_User = {}");
 //test_User = { test: {position: {x: 0}} } 같은 느낌으로 저장
 
 io.sockets.on('connection', function(socket){
+    
     socket.join("_room" + room_id);
     socket.on('newUserConnect', function(name, position){
         socket.name = name;
@@ -115,7 +126,6 @@ io.sockets.on('connection', function(socket){
         eval(room_id+"_User."+name+".position.y = "+position.y);
         eval(room_id+"_User."+name+".position.z = "+position.z);
         eval(room_id+"_User."+name+".position.dir = "+position.dir);
-
 
         io.sockets.emit('loadNewbieAvatar', {
             newbie : name,

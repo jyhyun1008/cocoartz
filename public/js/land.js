@@ -4,6 +4,12 @@ import { FontLoader } from '/js/three/FontLoader.js';
 import { GLTFLoader } from '/js/three/GLTFLoader.js';
 
 const canvas = document.querySelector('#threejs');
+const controller = document.querySelector('#controller');
+
+let INTERSECTED, raycaster;
+const pointer = new THREE.Vector2();
+var plainpointer = {};
+
 var scene = new THREE.Scene();
 scene.background = new THREE.Color( 0xF0EEE4 );
 
@@ -18,24 +24,58 @@ controls.update();
 controls.enablePan = false;
 controls.enableDamping = true;
 
+controller.style.width = window.innerWidth;
+controller.style.height = window.innerHeight - 200;
+
+var dayNight = [[255, 255, 255], [249, 197, 174], [128, 141, 173]];
+var sunrise = parseInt(document.querySelector('#sunrise').innerText);
+var sunset = parseInt(document.querySelector('#sunset').innerText);
+var msPerMin = 60000;
+var morningTwilight = sunrise - 30*msPerMin; //박명시각은 가져오기 귀찮아서 30분으로했어요.
+var eveningTwilight = sunset + 30*msPerMin;
+
+function mod(n, m) {
+    return ((n % m) + m) % m;
+  }
+
+setInterval(function() {
+    var WhatTimeIsIt = mod(new Date().getTime()+32400000, 86400000);
+    var MorningPassed = WhatTimeIsIt - (sunrise - 30*msPerMin);
+    var EveningPassed = WhatTimeIsIt - sunset;
+
+    if (WhatTimeIsIt < morningTwilight || WhatTimeIsIt > eveningTwilight){ //밤
+        controller.style.backgroundColor = 'rgba('+dayNight[2][0]+', '+dayNight[2][1]+', '+dayNight[2][2]+')';
+    } else if (WhatTimeIsIt >= morningTwilight && WhatTimeIsIt <= sunrise) { //아침
+        if (MorningPassed < 15*msPerMin){
+            controller.style.backgroundColor = 'rgba('+(dayNight[2][0]+(MorningPassed/15/msPerMin)*(dayNight[1][0]-dayNight[2][0]))+', '+(dayNight[2][1]+(MorningPassed/15/msPerMin)*(dayNight[1][1]-dayNight[2][1]))+', '+(dayNight[2][2]+(MorningPassed/15/msPerMin)*(dayNight[1][2]-dayNight[2][2]))+')';
+        } else {
+            controller.style.backgroundColor = 'rgba('+(dayNight[1][0]+((MorningPassed-15*msPerMin)/15/msPerMin)*(dayNight[0][0]-dayNight[1][0]))+', '+(dayNight[1][1]+((MorningPassed-15*msPerMin)/15/msPerMin)*(dayNight[0][1]-dayNight[1][1]))+', '+(dayNight[1][2]+((MorningPassed-15*msPerMin)/15/msPerMin)*(dayNight[0][2]-dayNight[1][2]))+')';
+        }
+    } else if (WhatTimeIsIt >= sunset && WhatTimeIsIt <= eveningTwilight) { //저녁
+        if (EveningPassed < 15*msPerMin){
+            controller.style.backgroundColor = 'rgba('+(dayNight[0][0]+(EveningPassed/15/msPerMin)*(dayNight[1][0]-dayNight[0][0]))+', '+(dayNight[0][1]+(EveningPassed/15/msPerMin)*(dayNight[1][1]-dayNight[0][1]))+', '+(dayNight[0][2]+(EveningPassed/15/msPerMin)*(dayNight[1][2]-dayNight[0][2]))+')';
+        } else {
+            controller.style.backgroundColor = 'rgba('+(dayNight[1][0]+((EveningPassed-15*msPerMin)/15/msPerMin)*(dayNight[2][0]-dayNight[1][0]))+', '+(dayNight[1][1]+((EveningPassed-15*msPerMin)/15/msPerMin)*(dayNight[2][1]-dayNight[1][1]))+', '+(dayNight[1][2]+((EveningPassed-15*msPerMin)/15/msPerMin)*(dayNight[2][2]-dayNight[1][2]))+')';
+        }
+    } else { //낮
+        controller.style.backgroundColor = 'rgba('+dayNight[0][0]+', '+dayNight[0][1]+', '+dayNight[0][2]+')';
+    }
+    setTimeout(()=>{
+        if (controller.className === undefined){
+            controller.className = 'dayNight';
+        }
+    }, 0);
+}, 1000)
+
 window.addEventListener('resize', function () { 
 
-    var newCamera = new THREE.PerspectiveCamera( 75, window.innerWidth / (window.innerHeight - 200), 0.1, 1000 );
-    renderer.setSize( window.innerWidth, window.innerHeight - 200, false);
+    camera.aspect = window.innerWidth / (window.innerHeight - 200);
+    camera.updateProjectionMatrix();
 
-    setTimeout(()=>{
-        newCamera.position.x = camera.position.x;
-        newCamera.position.y = camera.position.y;
-        newCamera.position.z = camera.position.z;
-        camera = newCamera;
+    renderer.setSize( window.innerWidth, window.innerHeight - 200 );
 
-        controls = new OrbitControls( camera, renderer.domElement );
-        controls.target.set(my_position.x, my_position.y + 1.0, my_position.z);
-        controls.update();
-        controls.enablePan = false;
-        controls.enableDamping = true;
-    }, 0)
-
+    controller.style.width = window.innerWidth;
+    controller.style.height = window.innerHeight - 200;
 });
 
 const avatarload = new GLTFLoader();
@@ -72,16 +112,16 @@ function landLoader(){
         land.children[0].material.side = THREE.DoubleSide;
         land.itemType = 'space';
         scene.add( land );
-        actionPusher('land', pose);
+        index++;
     });
     landload.load( '/assets/models/land/SkyBase.gltf', function ( gltf ) {
         var sky = gltf.scene;
         
-        sky.children[0].material = new THREE.MeshBasicMaterial({ color: 0x00eeff });
+        sky.children[0].material = new THREE.MeshBasicMaterial({ color: 0x99eeff });
         sky.children[0].material.side = THREE.BackSide;
         sky.itemType = 'space';
         scene.add( sky );
-        actionPusher('land', pose);
+        index++;
     });
 }
 
@@ -99,7 +139,7 @@ function avatarLoader(name, x, y, z, dir) {
             side: THREE.DoubleSide
         } );
 
-        const shapes = font.generateShapes( name, 0.1);
+        const shapes = font.generateShapes( '', 0.1);
         const geometry = new THREE.ShapeGeometry( shapes );
         geometry.computeBoundingBox();
 
@@ -107,15 +147,16 @@ function avatarLoader(name, x, y, z, dir) {
         geometry.translate( xMid, 0, 0 );
 
         text = new THREE.Mesh( geometry, matLite );
-        //text.rotation.y = Math.PI;
         text.position.x = x;
         text.position.y = y + 1.5;
         text.position.z = z;
 
         text.itemType = 'text';
+        text.userName = name;
 
         scene.add( text );
-        actionPusher(name, pose);
+        connectedUsers[index] = name;
+        index++;
 
     });
 
@@ -136,6 +177,7 @@ function avatarLoader(name, x, y, z, dir) {
         skeleton.visible = false;
 
         base.itemType = 'avatar';
+        base.userName = name;
 
         base.position.x = x;
         base.position.y = y;
@@ -146,8 +188,8 @@ function avatarLoader(name, x, y, z, dir) {
         base.add( skeleton );
 
         eval('mixer['+index+'] = new THREE.AnimationMixer( base )');
-        actionPusher(name, pose);
-
+        connectedUsers[index] = name;
+        index++;
 
     });
 
@@ -174,38 +216,40 @@ function avatarLoader(name, x, y, z, dir) {
                 eval("Meshs."+itemArr[a]+".scene.children[0].children[1].material = new THREE.MeshBasicMaterial({ map: new THREE.TextureLoader().load('/assets/textures/'+itemString+'m.png') });");
                 eval('Meshs.'+itemArr[a]+'.scene.children[0].children[1].material.side = THREE.DoubleSide;');
                 eval('Meshs.'+itemArr[a]+'.scene.itemType = "avatar";');
+                eval('Meshs.'+itemArr[a]+'.scene.userName = "'+name+'";');
 
                 eval('scene.add( Meshs.'+itemArr[a]+'.scene );');
                 eval('Meshs.'+itemArr[a]+'.scene.add( skeleton );');
                 eval('mixer['+index+'] = new THREE.AnimationMixer( Meshs.'+itemArr[a]+'.scene )');
-                actionPusher(name, pose);
-                
-                if (a == itemArr.length - 1) {
+                connectedUsers[index] = name;
+                index++;
+                if (a == itemArr.length - 1){
                     setTimeout(()=>{
-                        animate();
-                    }, 2000)
+                        actionPusher(pose);
+                        console.log(pose);
+                        console.log(action);
+                        setTimeout(()=>{
+                            animate();
+                            console.log(scene);
+                        }, 300)
+                    }, 2700)
                 }
-
-                
             })
-              },10*x)
+              },10*a)
             })(i)
         }
-
     }, 50)
-
 }
 
-function actionPusher(name, pose){
-
-    connectedUsers[index] = name;
-    action.push([]);
-    for (var j=0; j < pose.length; j++){
-        if (mixer[index] !== undefined){
-            action[index].push( mixer[index].clipAction( pose[j] ).play() );
+function actionPusher(pose){
+    for (var i=0; i < connectedUsers.length; i++){
+        action.push([]);
+        for (var j=0; j < pose.length; j++){
+            if (mixer[i] !== undefined){
+                action[i].push( mixer[i].clipAction( pose[j] ).play() );
+            }
         }
     }
-    index++;
 }
 
 var my_name = document.querySelector(".width-400px").id.substring(7);
@@ -219,7 +263,19 @@ var my_position = {
 
 var socket = io();
 socket.on('connect', function(){
+
+    scene = new THREE.Scene();
+    scene.background = new THREE.Color( 0x99EEFF );
+
+    landLoader();
+
+    controls.target.set(my_position.x, my_position.y + 1.0, my_position.z);
+    controls.update();
+
+    document.addEventListener( 'mousemove', onPointerMove );
+
     socket.emit('newUserConnect', my_name, my_position);
+
 });
 
 document.addEventListener('keydown', function(e){
@@ -255,23 +311,24 @@ document.addEventListener('keydown', function(e){
     }
 });
 
+function onPointerMove( event ) {
+    pointer.x = (( event.clientX / window.innerWidth ) * 2 - 1);
+    pointer.y = (- ( (event.clientY-100) / (window.innerHeight - 200) ) * 2 + 1);
+    
+    plainpointer.x = event.clientX;
+    plainpointer.y = event.clientY;
+}
 
 socket.on('loadNewbieAvatar', function(avatar){
     if (avatar.newbie == my_name) {
-        scene = new THREE.Scene();
-        scene.background = new THREE.Color( 0x00EEFF );
-    
-        landLoader();
         for(var key in avatar.user){
             var x = avatar.user[key].position.x;
             var y = avatar.user[key].position.y;
             var z = avatar.user[key].position.z;
             var dir = avatar.user[key].position.dir + Math.PI;
-    
+            raycaster = new THREE.Raycaster();
             avatarLoader(key, x, y, z, dir);
         }
-        controls.target.set(my_position.x, my_position.y + 1.0, my_position.z);
-        controls.update();
     } else {
         var key = avatar.newbie;
         avatarLoader(avatar.newbie, avatar.user[key].position.x, avatar.user[key].position.y, avatar.user[key].position.z, avatar.user[key].position.dir+Math.PI);
@@ -312,26 +369,32 @@ socket.on('loadUserPosition', function(avatar){
 
 
 var animate = function () {
-    requestAnimationFrame( animate );
+    sceneAnimation = requestAnimationFrame( animate );
     var now = clock.getDelta();
-    for(var i = 0; i < connectedUsers.length; i++){
-        if ( scene.children[i].itemType == 'avatar' ){
-            for (var j = 0; j < pose.length; j++){
-                if (j == 0){
-                    action[i][j].weight=1;
-                } else {
-                    action[i][j].weight=0;
+
+        for(var i = 0; i < connectedUsers.length; i++){
+            if ( scene.children[i].itemType == 'avatar' ){
+                for (var j = 0; j < pose.length; j++){
+                    if (action[i] === undefined){
+                        cancelAnimationFrame(sceneAnimation);
+                        setTimeout(()=>{
+                            animate();
+                        }, 100)
+                    } else {
+                        if (j == 0){
+                            action[i][j].weight=1;
+                        } else {
+                            action[i][j].weight=0;
+                        }
+                    }
                 }
+                mixer[i].update(now);
             }
-            mixer[i].update(now);
         }
-    }
-    setTimeout(()=>{
-
-    controls.update();
-    renderer.render( scene, camera );
-
-    }, 16);
+        setTimeout(()=>{
+            controls.update();
+            render();
+        }, 0);
 };
 
 function animateWalk(cam, userId, startTime) {
@@ -359,7 +422,10 @@ function animateWalk(cam, userId, startTime) {
                 }
                 mixer[i].update(now);
                 
-            } else {
+            } else if ( scene.children[i].itemType == 'text' ) {
+                scene.children[i].position.y += 1.5;
+                scene.children[i].rotation.y = userId.posdir + Math.PI;
+
                 if (my_name == userId.name){
                 
                     cam.posx = userId.prex;
@@ -369,7 +435,7 @@ function animateWalk(cam, userId, startTime) {
                     camera.position.x = cam.prex + timeDiff/1000 * (cam.posx - cam.prex);
                     camera.position.y = cam.prey + timeDiff/1000 * (cam.posy - cam.prey);
                     camera.position.z = cam.prez + timeDiff/1000 * (cam.posz - cam.prez);
-                    controls.target.set(scene.children[i].position.x, scene.children[i].position.y + 1.0, scene.children[i].position.z);
+                    controls.target.set(scene.children[i].position.x, scene.children[i].position.y -0.5, scene.children[i].position.z);
 
                 }
             }
@@ -378,7 +444,7 @@ function animateWalk(cam, userId, startTime) {
 
     //setTimeout(()=>{
         controls.update();
-        renderer.render( scene, camera );
+        render();
     //}, 0)
 
     if (timeDiff < 1000) {
@@ -386,6 +452,84 @@ function animateWalk(cam, userId, startTime) {
             animateWalk(cam, userId, startTime);
         } );
     } else if (timeDiff >= 1000) {
+        
         animate();
     }
+}
+
+function render() {
+    raycaster.setFromCamera( pointer, camera );
+    const intersects = raycaster.intersectObjects( scene.children, true );
+    for ( var i = 0; i <intersects.length; i++){
+        if (intersects[i].object.type == "SkeletonHelper"){
+            intersects.splice(i, 1);
+            i--;
+        }
+    }
+    if ( intersects.length > 0 && intersects[0].object.type != "SkeletonHelper" ) {
+
+        if ( INTERSECTED == intersects[ 0 ].object ) {
+
+            //if (INTERSECTED.material.color === undefined) {
+                //INTERSECTED.material.color.r = 1;
+                //INTERSECTED.material.color.g = 1;
+                //INTERSECTED.material.color.b = 1;
+            //}
+
+            //INTERSECTED.currentHex.r = INTERSECTED.material.color.r;
+            //INTERSECTED.currentHex.g = INTERSECTED.material.color.g;
+            //INTERSECTED.currentHex.b = INTERSECTED.material.color.b;
+
+            //INTERSECTED.material.color.r=1;
+            //INTERSECTED.material.color.g=0;
+            //INTERSECTED.material.color.b=0;
+
+            if (document.getElementsByClassName('nameTag').length == 0 && INTERSECTED.parent.parent.itemType){
+                //console.log(INTERSECTED)
+
+                var newDiv = document.createElement("div");
+                newDiv.style.position = "fixed";
+                newDiv.style.zIndex = 2;
+                newDiv.classList.add('nameTag');
+                newDiv.style.left = plainpointer.x;
+                newDiv.style.top = plainpointer.y;
+                newDiv.style.backgroundColor = '#70594D';
+                newDiv.style.color = '#F0EEE4';
+                newDiv.style.borderRadius = '15px';
+                //var newContent = document.createTextNode(INTERSECTED.name);
+
+                var newContent = document.createTextNode(INTERSECTED.parent.parent.userName);
+                newDiv.appendChild(newContent);
+                document.getElementsByClassName("width-400px")[0].appendChild(newDiv);
+            }
+
+        } else {
+            
+            INTERSECTED = intersects[ 0 ].object;
+            //INTERSECTED.currentHex = {};
+            //console.log(intersects);
+            if (document.querySelector('.nameTag')){
+                var removeDiv = document.querySelector('.nameTag');
+                removeDiv.remove();
+            }
+            if ( INTERSECTED ){
+                //INTERSECTED.material.color.r = INTERSECTED.currentHex.r;
+                //INTERSECTED.material.color.g = INTERSECTED.currentHex.g;
+                //INTERSECTED.material.color.b = INTERSECTED.currentHex.b;
+            }
+        }
+
+    } else {
+        if (document.querySelector('.nameTag')){
+            var removeDiv = document.querySelector('.nameTag');
+            removeDiv.remove();
+        }
+        if ( INTERSECTED ) {
+            //INTERSECTED.material.color.r = INTERSECTED.currentHex.r;              
+            //INTERSECTED.material.color.g = INTERSECTED.currentHex.g;
+            //INTERSECTED.material.color.b = INTERSECTED.currentHex.b;
+        }
+        INTERSECTED = null;
+    }
+    renderer.render( scene, camera );
 }

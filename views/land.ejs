@@ -12,9 +12,13 @@
         <!--본격적인 HTML은 여기서부터-->
         
         <div class="width-400px" style="text-align: center; background-color: #00000000;" id="userid_<%= userID %>">
-            <canvas id="threejs" style="z-index: 1; position: fixed; left: 0; top: 100px;"></canvas>
+
+            <canvas id="controller" style="z-index: 0; position: fixed; left: 0; top: 100px; background-color: #000"></canvas>
+            <canvas id="threejs" style="z-index: 1; position: fixed; left: 0; top: 100px; mix-blend-mode: multiply;"></canvas>
             <h1>방 제목</h1>
             <div><%=userID %> 님, 안녕하세요!</div>
+            <div id="sunrise" style="color: #0000;"><%=sunrise %></div>
+            <div id="sunset" style="color: #0000;"><%=sunset %></div>
             <script src="/socket.io/socket.io.js"></script>
             <script src="/js/land.js" type="module"></script>
             <script>
