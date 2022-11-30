@@ -2,6 +2,7 @@ import { OrbitControls } from '/js/three/OrbitControls.js';
 import * as THREE from '/js/three/three.module.js';
 import { FontLoader } from '/js/three/FontLoader.js';
 import { GLTFLoader } from '/js/three/GLTFLoader.js';
+import { CSS2DRenderer, CSS2DObject } from '/js/three/CSS2DRenderer.js';
 
 const canvas = document.querySelector('#threejs');
 const controller = document.querySelector('#controller');
@@ -13,11 +14,19 @@ var plainpointer = {};
 var scene = new THREE.Scene();
 scene.background = new THREE.Color( 0xF0EEE4 );
 
-var camera = new THREE.PerspectiveCamera( 75, window.innerWidth / (window.innerHeight - 200), 0.1, 1000 );
-camera.position.z = 3;
+var camera = new THREE.PerspectiveCamera( 75, window.innerWidth / (window.innerHeight - 200), 0.01, 1000 );
+camera.position.z = -2;
+camera.position.y = 1;
 
 var renderer = new THREE.WebGLRenderer({ canvas, alpha: false, });
 renderer.setSize( window.innerWidth, window.innerHeight - 200, false);
+
+
+var labelRenderer = new CSS2DRenderer();
+labelRenderer.setSize( window.innerWidth, window.innerHeight - 200 );
+labelRenderer.domElement.style.position = 'absolute';
+labelRenderer.domElement.style.top = '0px';
+document.querySelector('.width_full').appendChild( labelRenderer.domElement );
 
 var controls = new OrbitControls( camera, renderer.domElement );
 controls.update();
@@ -73,6 +82,7 @@ window.addEventListener('resize', function () {
     camera.updateProjectionMatrix();
 
     renderer.setSize( window.innerWidth, window.innerHeight - 200 );
+    labelRenderer.setSize( window.innerWidth, window.innerHeight - 200 );
 
     controller.style.width = window.innerWidth;
     controller.style.height = window.innerHeight - 200;
@@ -123,6 +133,24 @@ function landLoader(){
         scene.add( sky );
         index++;
     });
+    landload.load('/assets/models/block/BasicHouse.gltf', function (gltf) {
+        var item = gltf.scene;
+        var itemtex = item.children[0];
+
+        var texture = new THREE.TextureLoader().load('/assets/textures/colormap.png');
+        itemtex.material = new THREE.MeshBasicMaterial({ map: texture });
+
+        item.position.x = 0;
+        item.position.z = -3;
+
+        item.itemType = 'house';
+        item.userName = 'String';
+
+        scene.add( item );
+        index++;
+
+
+    })
 }
 
 function avatarLoader(name, x, y, z, dir) {
@@ -252,7 +280,7 @@ function actionPusher(pose){
     }
 }
 
-var my_name = document.querySelector(".width-400px").id.substring(7);
+var my_name = document.querySelector(".width_full").id.substring(7);
 
 var my_position = {
     x: 0,
@@ -336,22 +364,24 @@ socket.on('loadNewbieAvatar', function(avatar){
 })
 
 socket.on('disconnectAvatar', function(avatar){
-    setTimeout(() => {
+    if ( avatar.oldbie ){
+        setTimeout(() => {
 
-        for(var i = 0; i < connectedUsers.length; i++){
-            if (connectedUsers[i] == avatar.oldbie){
-                action.splice(i, 1);
-                mixer.splice(i, 1);
-                connectedUsers.splice(i, 1);
-                scene.children.splice(i, 1);
-                i--;
-                index--;
-                if (i == connectedUsers.length -1 ) {
-                    controls.update();
+            for(var i = 0; i < connectedUsers.length; i++){
+                if (connectedUsers[i] == avatar.oldbie){
+                    action.splice(i, 1);
+                    mixer.splice(i, 1);
+                    connectedUsers.splice(i, 1);
+                    scene.children.splice(i, 1);
+                    i--;
+                    index--;
+                    if (i == connectedUsers.length -1 ) {
+                        controls.update();
+                    }
                 }
             }
-        }
-    }, 10);
+        }, 10);
+    }
 })
 
 socket.on('loadUserPosition', function(avatar){
@@ -490,11 +520,12 @@ function render() {
                     newDiv.style.top = plainpointer.y;
                     var newContent = document.createTextNode(INTERSECTED.parent.parent.userName);
                     newDiv.appendChild(newContent);
-                    document.getElementsByClassName("width-400px")[0].appendChild(newDiv);
+                    document.getElementsByClassName("width_full")[0].appendChild(newDiv);
 
                     INTERSECTED.material.color.r=1;
                     INTERSECTED.material.color.g=0.8;
                     INTERSECTED.material.color.b=0.7;
+
                 }
             }
 
@@ -511,4 +542,124 @@ function render() {
             INTERSECTED = null;
         }
         renderer.render( scene, camera );
+        labelRenderer.render( scene, camera );
+
+}
+
+// 여기 아래부터는 채팅 관련 코드
+
+const chatBtn = document.querySelector('#chatBtn');
+const chatInput = document.querySelector('#chatInput');
+var ifLogin = document.querySelector(".width_full").id.includes("userid_guest");
+
+window.addEventListener('keyup', ()=>{
+    if(chatInput.value.length > 0){
+        chatBtn.disabled = false;
+        chatBtn.classList.add('active');
+    }else{
+        chatBtn.disabled = true;
+        chatBtn.classList.remove('active');
+    }
+})
+
+var socket = io();
+var members = [];
+
+console.log(members);
+
+//var info = document.getElementById('info');
+var chatWindow = document.getElementById('chatWindow');
+
+socket.on('updateMessage', function(data){
+    if(data.name === '<시스템>'){
+        //info.innerText = '채팅방 ('+data.members+')';
+
+        var chatMessageEl = drawChatMessage(data);
+        chatWindow.appendChild(chatMessageEl);
+
+        chatWindow.scrollTop = chatWindow.scrollHeight;
+
+    }else{
+        var chatMessageEl = drawChatMessage(data);
+        chatWindow.appendChild(chatMessageEl);
+
+        chatWindow.scrollTop = chatWindow.scrollHeight;
+    }
+});
+
+function drawChatMessage(data){
+
+    var wrap = document.createElement('div');
+    var message = document.createElement('span');
+    var name = document.createElement('span');
+
+    name.innerText = data.name;
+    message.innerText = data.message;
+
+    name.classList.add('output__user__name');
+    message.classList.add('output__user__message');
+
+    wrap.classList.add('output__user');
+    wrap.dataset.id = socket.id;
+   
+    wrap.appendChild(name);
+    wrap.appendChild(message);
+    
+    for ( var i=0; i < connectedUsers.length; i++ ){
+        if (connectedUsers[i] == data.name){
+
+            if (eval('document.querySelector(".'+data.name+'")')){
+                eval('document.querySelector(".'+data.name+'").remove();');
+                for (var j = 0; j < scene.children[i].children.length; j++){
+                    if (scene.children[i].children[j].isCSS2DObject){
+                        scene.children[i].children.splice(j, 1);
+                    }
+                }
+            }
+
+            scene.children[i].layers.enableAll();
+
+            const chatDiv = document.createElement( 'div' );
+            chatDiv.className = data.name+' chatDiv';
+            chatDiv.textContent = data.message;
+            chatDiv.style.marginTop = '-1em';
+            const chatLabel = new CSS2DObject( chatDiv );
+            chatLabel.position.set( 0, 0.5, 0 );
+            scene.children[i].add( chatLabel );
+            chatLabel.layers.set( 0 );
+
+            console.log('document.querySelector(".'+data.name+' chatDiv")')
+        
+            setTimeout(() => {
+                eval('document.querySelector(".'+data.name+'").remove();');
+                for (var j = 0; j < scene.children[i].children.length; j++){
+                    if (scene.children[i].children[j].isCSS2DObject){
+                        scene.children[i].children.splice(j, 1);
+                    }
+                }
+            }, 10000);
+
+            break;
+
+        }
+    }
+
+    return wrap;
+}
+
+document.addEventListener('keydown', function(e){
+    if (e.keyCode == 13 ){
+        chatFunc();
+    }
+});
+
+chatBtn.addEventListener('click', chatFunc) // 'click'이란 id의 버튼을 누르면 signinFunc 함수를 실행.
+
+function chatFunc() {
+    var message = chatInput.value;
+    if(!message) return false;    
+    socket.emit('sendMessage', {
+        message
+    });
+    chatInput.value = '';
 }

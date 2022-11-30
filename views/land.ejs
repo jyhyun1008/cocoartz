@@ -11,7 +11,7 @@
         
         <!--본격적인 HTML은 여기서부터-->
         
-        <div class="width-400px" style="text-align: center; background-color: #00000000;" id="userid_<%= userID %>">
+        <div class="width_full" style="text-align: center; background-color: #00000000;" id="userid_<%= userID %>">
 
             <canvas id="controller" style="z-index: 0; position: fixed; left: 0; top: 100px; background-color: #000"></canvas>
             <canvas id="threejs" style="z-index: 1; position: fixed; left: 0; top: 100px; mix-blend-mode: multiply;"></canvas>
@@ -19,16 +19,23 @@
             <div><%=userID %> 님, 안녕하세요!</div>
             <div id="sunrise" style="color: #0000;"><%=sunrise %></div>
             <div id="sunset" style="color: #0000;"><%=sunset %></div>
-            <script src="/socket.io/socket.io.js"></script>
-            <script src="/js/land.js" type="module"></script>
-            <script>
-                
-            </script>
+            <div class="chatroom">
+                <div id="chatWindow" class="chatBox"></div>
+                <div class="app__input__wrap">
+                    <input id="chatInput" type="text" class="full_input" style="width: calc( 100vw - 100px );" autofocus placeholder="무슨 일이 일어나고 있나요?">
+                    <input id="chatBtn" type="button" class="full_button" style="width: 100px;" value="뿌우!" disabled>
+                </div>
+            </div>
         </div>
-        
         <!--footer-->
         <div class="footer">
             <div>COCOARTZ!</div>
         </div>
+
+        <script src="/socket.io/socket.io.js"></script>
+        <script src="/js/land.js" type="module"></script>
+        <script>
+            
+        </script>
     </body>
 </html>
