@@ -4,6 +4,7 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" >
         <meta http-equiv="X-UA-Compatible" content="ie=edge">
         <link rel="stylesheet" type="text/css" href="/css/main.css">
+        <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
         <title>COCOARTZ!</title>
     </head>
     <body>
@@ -19,11 +20,12 @@
             <div><%=userID %> 님, 안녕하세요!</div>
             <div id="sunrise" style="color: #0000;"><%=sunrise %></div>
             <div id="sunset" style="color: #0000;"><%=sunset %></div>
-            <div class="chatroom">
-                <div id="chatWindow" class="chatBox"></div>
+            <div class="chatroom showChatBox">
+                <div class="chatToggle"><i class='bx bx-chevrons-down' ></i></div>
+                <div id="chatWindow" class="chatBox activeChatBox"></div>
                 <div class="app__input__wrap">
                     <input id="chatInput" type="text" class="full_input" style="width: calc( 100vw - 100px );" autofocus placeholder="무슨 일이 일어나고 있나요?">
-                    <input id="chatBtn" type="button" class="full_button" style="width: 100px;" value="뿌우!" disabled>
+                    <input id="chatBtn" type="button" class="full_button" style="width: 100px;" value="전송!" disabled>
                 </div>
             </div>
         </div>

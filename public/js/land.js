@@ -4,6 +4,22 @@ import { FontLoader } from '/js/three/FontLoader.js';
 import { GLTFLoader } from '/js/three/GLTFLoader.js';
 import { CSS2DRenderer, CSS2DObject } from '/js/three/CSS2DRenderer.js';
 
+// 채팅방 토글
+
+document.querySelector('.chatToggle').addEventListener('click', function(){
+    if (document.querySelector('.chatroom').classList[1]){
+        document.querySelector('.chatroom').classList.remove('showChatBox');
+        document.querySelector('.chatBox').classList.remove('activeChatBox');
+        document.querySelector('.chatToggle').innerHTML = '<i class="bx bx-chevrons-up" ></i>';
+    } else {
+        document.querySelector('.chatroom').classList.add('showChatBox');
+        document.querySelector('.chatBox').classList.add('activeChatBox');
+        document.querySelector('.chatToggle').innerHTML = '<i class="bx bx-chevrons-down" ></i>';
+    }
+})
+
+// 3d 로딩 관련
+
 const canvas = document.querySelector('#threejs');
 const controller = document.querySelector('#controller');
 
@@ -111,6 +127,7 @@ var clock = new THREE.Clock();
 var connectedUsers = [];
 var mixer = [];
 var index = 0;
+var lastindex;
 
 var sceneAnimation;
 
@@ -137,11 +154,12 @@ function landLoader(){
         var item = gltf.scene;
         var itemtex = item.children[0];
 
-        var texture = new THREE.TextureLoader().load('/assets/textures/colormap.png');
+        var texture = new THREE.TextureLoader().load('/assets/textures/block/BasicHousem.png');
         itemtex.material = new THREE.MeshBasicMaterial({ map: texture });
 
         item.position.x = 0;
-        item.position.z = -3;
+        item.position.z = 3;
+        item.rotation.y = Math.PI;
 
         item.itemType = 'house';
         item.userName = 'String';
@@ -150,12 +168,32 @@ function landLoader(){
         index++;
 
 
-    })
+    });
+    landload.load('/assets/models/plant/BasicTree.gltf', function (gltf) {
+        var item = gltf.scene;
+        var itemtex = item.children[0];
+
+        var texture = new THREE.TextureLoader().load('/assets/textures/colormap.png');
+        itemtex.material = new THREE.MeshBasicMaterial({ map: texture });
+
+        item.position.x = -1;
+        item.position.z = -3;
+        item.rotation.y = Math.PI;
+
+        item.itemType = 'plant';
+        item.userName = 'String';
+
+        scene.add( item );
+        index++;
+
+
+    });
 }
 
 function avatarLoader(name, x, y, z, dir) {
 
     var text;
+    lastindex = index;
 
     const loader = new FontLoader();
     loader.load( 'https://unpkg.com/three@0.77.0/examples/fonts/helvetiker_regular.typeface.json', function ( font ) {
@@ -247,30 +285,32 @@ function avatarLoader(name, x, y, z, dir) {
                 eval('Meshs.'+itemArr[a]+'.scene.userName = "'+name+'";');
 
                 eval('scene.add( Meshs.'+itemArr[a]+'.scene );');
-                eval('Meshs.'+itemArr[a]+'.scene.add( skeleton );');
+                //eval('Meshs.'+itemArr[a]+'.scene.add( skeleton );');
                 eval('mixer['+index+'] = new THREE.AnimationMixer( Meshs.'+itemArr[a]+'.scene )');
                 connectedUsers[index] = name;
                 index++;
                 if (a == itemArr.length - 1){
                     setTimeout(()=>{
                         actionPusher(pose);
-                        console.log(pose);
-                        console.log(action);
                         setTimeout(()=>{
+                            console.log(pose);
+                            console.log(action);
+                            console.log(lastindex, index);
+                            console.log(connectedUsers);
                             animate();
                             console.log(scene);
                         }, 300)
-                    }, 2700)
+                    }, 500)
                 }
             })
-              },10*a)
+              },5*a)
             })(i)
         }
     }, 50)
 }
 
 function actionPusher(pose){
-    for (var i=0; i < connectedUsers.length; i++){
+    for (var i = lastindex; i < connectedUsers.length; i++){
         action.push([]);
         for (var j=0; j < pose.length; j++){
             if (mixer[i] !== undefined){
@@ -294,14 +334,10 @@ socket.on('connect', function(){
 
     scene = new THREE.Scene();
     scene.background = new THREE.Color( 0x99EEFF );
-
     landLoader();
-
     controls.target.set(my_position.x, my_position.y + 1.0, my_position.z);
     controls.update();
-
     document.addEventListener( 'mousemove', onPointerMove );
-
     socket.emit('newUserConnect', my_name, my_position);
 
 });
@@ -358,6 +394,7 @@ socket.on('loadNewbieAvatar', function(avatar){
         }
     } else {
         var key = avatar.newbie;
+        cancelAnimationFrame(sceneAnimation);
         avatarLoader(avatar.newbie, avatar.user[key].position.x, avatar.user[key].position.y, avatar.user[key].position.z, avatar.user[key].position.dir+Math.PI);
         controls.update();
     }
@@ -407,6 +444,7 @@ var animate = function () {
                     if (action[i] === undefined){
                         cancelAnimationFrame(sceneAnimation);
                         setTimeout(()=>{
+                            console.log("랙걸리는중");
                             animate();
                         }, 100)
                     } else {
@@ -565,14 +603,10 @@ window.addEventListener('keyup', ()=>{
 var socket = io();
 var members = [];
 
-console.log(members);
-
-//var info = document.getElementById('info');
 var chatWindow = document.getElementById('chatWindow');
 
 socket.on('updateMessage', function(data){
     if(data.name === '<시스템>'){
-        //info.innerText = '채팅방 ('+data.members+')';
 
         var chatMessageEl = drawChatMessage(data);
         chatWindow.appendChild(chatMessageEl);

@@ -59,7 +59,7 @@ form {
     overflow:auto;
 }
 
-code, .output__user__name{
+code, .output__user__name {
     background-color: var(--accent);
     color: var(--accenttext);
     border-radius: 15px;
@@ -222,20 +222,30 @@ code, .output__user__name{
 
 .chatroom {
     width: 100%;
-    height: 250px;
+    height: 40px;
     position: fixed;
     z-index: 2;
     left: 0;
+    top: calc(100vh - 140px);
+}
+
+.showChatBox {
+    height: 250px !important;
     top: calc(100vh - 350px);
 }
 
 .chatBox {
+    display: none;
     height: 210px;
     background-color: var(--inactaccent);
     color: var(--accenttext);
     position: static;
     text-align: justify;
     overflow-y: auto;
+}
+
+.activeChatBox {
+    display: block !important;
 }
 
 .chatDiv {
@@ -245,4 +255,15 @@ code, .output__user__name{
     padding: 5px;
     margin-left: 10px;
     margin-right:10px;
+}
+
+.chatToggle{
+    font-size: 1.5em;
+    background-color: var(--accent);
+    color: var(--accenttext);
+    border-radius: 20px;
+    padding: 5px;
+    margin: -0.75em calc(50vw - 20px);
+    width: 40px;
+    position: absolute;
 }

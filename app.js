@@ -1,3 +1,7 @@
+// app.js 실행 명령어: sudo forever start app.js
+// 리스트 확인 명령어: sudo forever list
+// app.js 스톱 명령어: sudo forever stop 0
+
 // app.js
 
 const express = require('express');
@@ -52,11 +56,6 @@ app.get('/about', function (req, res) {
     cookie = checkLogin(req, db).cookie;
     res.render('about', { userID: cookie.userID, userName: cookie.userName, isLogin: cookie.isLogin, msg: cookie.msg});
 });
-app.get('/guest', function (req, res) {
-    cookie = checkLogin(req, db).cookie;
-    res.render('guest', { userID: cookie.userID, userName: cookie.userName, isLogin: cookie.isLogin, msg: cookie.msg});
-});
-
 function mod(n, m) {
     return ((n % m) + m) % m;
   }
