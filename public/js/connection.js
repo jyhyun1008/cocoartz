@@ -7,15 +7,24 @@ import { animateFunction } from '/js/animateFunction.js';
 
 canvas = document.querySelector('#threejs');
 
-renderer = new THREE.WebGLRenderer({ canvas, alpha: false, });
-renderer.setSize( window.innerWidth, window.innerHeight - 200, false);
+var pRatio = window.devicePixelRatio || 1
 
-camera = new THREE.PerspectiveCamera( 75, window.innerWidth / (window.innerHeight - 200), 0.01, 1000 );
+const w = Math.round(pRatio * window.innerWidth)
+const h = Math.round(pRatio * (window.innerHeight - 200 ))
+canvas.width = w
+canvas.height = h
+canvas.setAttribute('width', window.innerWidth);
+canvas.setAttribute('height', window.innerHeight - 200);
+
+renderer = new THREE.WebGLRenderer({ canvas, alpha: false, });
+renderer.setSize( canvas.width, canvas.height, false);
+
+camera = new THREE.PerspectiveCamera( 75, canvas.width / (canvas.height), 0.01, 1000 );
 camera.position.z = -2;
 camera.position.y = 1;
 
 labelRenderer = new CSS2DRenderer();
-labelRenderer.setSize( window.innerWidth, window.innerHeight - 200 );
+labelRenderer.setSize( canvas.width, canvas.height );
 labelRenderer.domElement.style.position = 'absolute';
 labelRenderer.domElement.style.top = '0px';
 document.querySelector('.width_full').appendChild( labelRenderer.domElement );
@@ -30,19 +39,19 @@ scene.background = new THREE.Color( 0xF0EEE4 );
 
 window.addEventListener('resize', function () { 
 
-    camera.aspect = window.innerWidth / (window.innerHeight - 200);
+    camera.aspect = canvas.width / (canvas.height);
     camera.updateProjectionMatrix();
 
-    renderer.setSize( window.innerWidth, window.innerHeight - 200 );
-    labelRenderer.setSize( window.innerWidth, window.innerHeight - 200 );
+    renderer.setSize( canvas.width, canvas.height);
+    labelRenderer.setSize( canvas.width, canvas.height);
 
-    controller.style.width = window.innerWidth;
-    controller.style.height = window.innerHeight - 200;
+    controller.style.width = canvas.width;
+    controller.style.height = canvas.height;
 });
 
 new objectLoader().poseLoader();
 
-var socket = io();
+var socket = io.connect('http://158.247.235.135:8080', {reconnection:false});
 socket.on('connect', function(){
 
     index = 0;
@@ -55,6 +64,8 @@ socket.on('connect', function(){
         dir: 0
     };
     my_index = 0;
+
+    connectedUsers = [];
 
     scene = new THREE.Scene();
     scene.background = new THREE.Color( 0x99EEFF );
@@ -82,8 +93,7 @@ socket.on('loadNewbieAvatar', function(avatar){
     } else {
         var key = avatar.newbie;
         cancelAnimationFrame(sceneAnimation);
-        objectLoader.avatarLoader(avatar.newbie, avatar.user[key].position.x, avatar.user[key].position.y, avatar.user[key].position.z, avatar.user[key].position.dir+Math.PI);
-        controls.update();
+        new objectLoader().avatarLoader(avatar.newbie, avatar.user[key].position.x, avatar.user[key].position.y, avatar.user[key].position.z, avatar.user[key].position.dir+Math.PI);
     }
 })
 
@@ -100,10 +110,11 @@ socket.on('disconnectAvatar', function(avatar){
                     i--;
                     index--;
                     if (i == connectedUsers.length -1 ) {
-                        controls.update();
+                        animationUsers = connectedUsers.length;
                     }
                 }
             }
+            
         }, 10);
     }
 })
@@ -116,10 +127,10 @@ socket.on('loadUserPosition', function(avatar){
     cam.prey = camera.position.y;
     cam.prez = camera.position.z;
 
-    new animateFunction().animateWalk(cam, avatar, start);
-    controls.update();
-})
+    console.log(avatar.name);
 
+    new animateFunction().animateWalk(cam, avatar, start);
+});
 
 socket.on('updateMessage', function(data){
     if(data.name === '<시스템>'){

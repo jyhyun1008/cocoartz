@@ -1,6 +1,5 @@
 import * as THREE from '/js/three/three.module.js';
 
-var sceneAnimation;
 var clock = new THREE.Clock();
 
 class animateFunction {
@@ -9,14 +8,14 @@ class animateFunction {
         sceneAnimation = requestAnimationFrame( new animateFunction().animate );
         var now = clock.getDelta();
     
-            for(var i = 0; i < connectedUsers.length; i++){
+            for(var i = 0; i < animationUsers; i++){
                 if ( scene.children[i].itemType == 'body' || scene.children[i].itemType == 'avatar' ){
                     for (var j = 0; j < pose.length; j++){
                         if (action[i] === undefined){
                             cancelAnimationFrame(sceneAnimation);
                             setTimeout(()=>{
                                 console.log("랙걸리는중");
-                                animate();
+                                new animateFunction().animate();
                             }, 100)
                         } else {
                             if (j == 0){
@@ -39,16 +38,37 @@ class animateFunction {
     
         var now = clock.getDelta();
         var timeDiff = new Date() - startTime;
+
     
-        for(var i = 0; i < connectedUsers.length; i++){
+        for(var i = 0; i < animationUsers; i++){
             
             if (connectedUsers[i] == userId.name){
+
+                console.log('내가 움직이는중');
                 var divider = 500;
-    
-                if ( scene.children[i].itemType == 'body' || scene.children[i].itemType == 'avatar'){
+
+                scene.children[i].position.x = userId.prex + timeDiff/divider * (userId.posx - userId.prex);
+                scene.children[i].position.y = userId.prey + timeDiff/divider * (userId.posy - userId.prey);
+                scene.children[i].position.z = userId.prez + timeDiff/divider * (userId.posz - userId.prez);
+                scene.children[i].children[0].rotation.z = userId.posdir + Math.PI;
+
+                for (var j = 0; j < pose.length; j++){
+                    if (j == 1){
+                        action[i][j].weight=1;
+                    } else {
+                        action[i][j].weight=0;
+                    }
+                }
+                mixer[i].update(now);
+
+                if (scene.children[i].itemType == 'body'){
+
+                    scene.children[i].children[0].position.set(0, 0, 0);
+                    
                     if (my_name == userId.name){
     
                         var walkDistance = Math.sqrt((userId.posx - userId.prex)**2+(userId.posy - userId.prey)**2+(userId.posz - userId.prez)**2);
+
                     
                         cam.posx = userId.prex - 2 * (userId.posx - userId.prex) / walkDistance;
                         cam.posy = userId.prey - 2 * (userId.posy - userId.prey) / walkDistance + 1.5;
@@ -60,23 +80,11 @@ class animateFunction {
                         controls.target.set(scene.children[i].position.x, scene.children[i].position.y +1, scene.children[i].position.z);
     
                     }
+                }
+                    
     
-                    scene.children[i].position.x = userId.prex + timeDiff/divider * (userId.posx - userId.prex);
-                    scene.children[i].position.y = userId.prey + timeDiff/divider * (userId.posy - userId.prey);
-                    scene.children[i].position.z = userId.prez + timeDiff/divider * (userId.posz - userId.prez);
-                    scene.children[i].children[0].rotation.z = userId.posdir + Math.PI;
-    
-                    for (var j = 0; j < pose.length; j++){
-                        if (j == 1){
-                            action[i][j].weight=1;
-                        } else {
-                            action[i][j].weight=0;
-                        }
-                    }
-                    mixer[i].update(now);
     
                 }
-            }
         }
     
             controls.update();

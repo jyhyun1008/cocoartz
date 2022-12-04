@@ -28,9 +28,10 @@ class objectLoader {
     landLoader(){
         landload.load( '/assets/models/land/IslandBase.gltf', function ( gltf ) {
             var land = gltf.scene;
-            
-            land.children[0].material = new THREE.MeshBasicMaterial({ color: 0x009900 });
-            land.children[0].material.side = THREE.DoubleSide;
+            var landtex = land.children[0];
+            var texture = new THREE.TextureLoader().load('/assets/textures/land/BasicIslandm.png');
+            landtex.material = new THREE.MeshBasicMaterial({ map: texture });
+            landtex.material.side = THREE.DoubleSide;
             land.itemType = 'space';
             collidableMeshList.push(land);
             scene.add( land );
@@ -87,8 +88,6 @@ class objectLoader {
     }
 
     avatarLoader(name, x, y, z, dir) {
-
-        connectedUsers = [];
         lastindex = index;
 
         var skeleton, base;
@@ -166,7 +165,7 @@ class objectLoader {
                             var timeOut = 500;
                             isLoadingMe = false;
                         } else {
-                            var timeOut = 20;
+                            var timeOut = 100;
                         }
                         setTimeout(()=>{
                             new objectLoader().actionPusher(pose);
@@ -186,11 +185,14 @@ class objectLoader {
     actionPusher(pose){
         console.log(pose);
         for (var i = lastindex; i < connectedUsers.length; i++){
-            action.push([]);
+            action[i] = [];
             for (var j=0; j < pose.length; j++){
                 if (mixer[i] !== undefined){
-                    action[i].push( mixer[i].clipAction( pose[j] ).play() );
+                    action[i][j] = mixer[i].clipAction( pose[j] ).play();
                     console.log('포즈를 넣었어요!');
+                }
+                if (i == connectedUsers.length -1 && j == pose.length -1){
+                    animationUsers = connectedUsers.length;
                 }
             }
         }

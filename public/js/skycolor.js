@@ -12,6 +12,8 @@ var msPerMin = 60000;
 var morningTwilight = sunrise - 30*msPerMin; //박명시각은 가져오기 귀찮아서 30분으로했어요.
 var eveningTwilight = sunset + 30*msPerMin;
 
+const manager = new THREE.LoadingManager();
+
 function mod(n, m) {
     return ((n % m) + m) % m;
   }
