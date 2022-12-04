@@ -1,12 +1,12 @@
 # 코코아츠(COCOARTZ)!
 
-![따뜻한 코코아 그림](https://github.com/jyhyun1008/cocoartz/blob/master/public/assets/COCOARTZ_logo.png?raw=true)
+![코코아츠 로고](https://github.com/jyhyun1008/cocoartz/blob/master/public/assets/COCOARTZ_logo.png?raw=true)
 
 ↗︎[코코아츠.로그](https://velog.io/@hyun1008)
 
 ↗︎[업데이트 현황판](https://timestripe.com/boards/kkZakN3F/public/)
 
-> 이 페이지는 영어를 지원하지 않습니다. ~~라는 메세지조차 영어를 지원하지 않습니다.~~
+> 여기에 모여라! 동글동글 힐링 메타버스 플랫폼 "코코아츠"
 
 **코코아츠**는 제가 2022년 초에 잠깐 건드렸다 놓아둔 사이드 프로젝트로, **퍼피레드** 라는 게임을 모티브로 한 웹브라우저 기반 2D 메타버스~~인 척하는 재화 모으기 시뮬레이터~~였습니다. 당시의 파일은 아쉽게도 전부 날려 복구할 수 없고, 지금 만들고 있는 것은 코드와 자원을 모두 처음부터 개발하고 있는 2023년판 코코아츠입니다. 
 

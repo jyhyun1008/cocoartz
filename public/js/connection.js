@@ -5,6 +5,13 @@ import { CSS2DRenderer, CSS2DObject } from '/js/three/CSS2DRenderer.js';
 import { pointerSelect } from '/js/pointerSelect.js';
 import { animateFunction } from '/js/animateFunction.js';
 
+function appHeight() {
+    const doc = document.documentElement
+    doc.style.setProperty('--vh', (window.innerHeight*.01) + 'px');
+  }
+
+appHeight();
+
 canvas = document.querySelector('#threejs');
 
 var pRatio = window.devicePixelRatio || 1
@@ -13,19 +20,23 @@ const w = Math.round(pRatio * window.innerWidth)
 const h = Math.round(pRatio * (window.innerHeight - 200 ))
 canvas.width = w
 canvas.height = h
-canvas.setAttribute('width', window.innerWidth);
-canvas.setAttribute('height', window.innerHeight - 200);
+//canvas.setAttribute('width', window.innerWidth);
+//canvas.setAttribute('height', window.innerHeight - 200);
 
 renderer = new THREE.WebGLRenderer({ canvas, alpha: false, });
 renderer.setSize( canvas.width, canvas.height, false);
+renderer.setPixelRatio( window.devicePixelRatio );
 
-camera = new THREE.PerspectiveCamera( 75, canvas.width / (canvas.height), 0.01, 1000 );
+renderer.domElement.style.width = window.innerWidth + 'px';
+renderer.domElement.style.height = window.innerHeight - 200 + 'px';
+
+camera = new THREE.PerspectiveCamera( 75, canvas.width / canvas.height, 0.01, 1000 );
 camera.position.z = -2;
 camera.position.y = 1;
 
 labelRenderer = new CSS2DRenderer();
 labelRenderer.setSize( canvas.width, canvas.height );
-labelRenderer.domElement.style.position = 'absolute';
+labelRenderer.domElement.style.position = 'absolute'; 
 labelRenderer.domElement.style.top = '0px';
 document.querySelector('.width_full').appendChild( labelRenderer.domElement );
 
@@ -47,6 +58,8 @@ window.addEventListener('resize', function () {
 
     controller.style.width = canvas.width;
     controller.style.height = canvas.height;
+
+    appHeight();
 });
 
 new objectLoader().poseLoader();
@@ -55,7 +68,6 @@ var socket = io.connect('http://158.247.235.135:8080', {reconnection:false});
 socket.on('connect', function(){
 
     index = 0;
-
     my_name = document.querySelector(".width_full").id.substring(7);
     my_position = {
         x: 0,
@@ -64,7 +76,6 @@ socket.on('connect', function(){
         dir: 0
     };
     my_index = 0;
-
     connectedUsers = [];
 
     scene = new THREE.Scene();
@@ -126,8 +137,6 @@ socket.on('loadUserPosition', function(avatar){
     cam.prex = camera.position.x;
     cam.prey = camera.position.y;
     cam.prez = camera.position.z;
-
-    console.log(avatar.name);
 
     new animateFunction().animateWalk(cam, avatar, start);
 });

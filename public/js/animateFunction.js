@@ -44,7 +44,6 @@ class animateFunction {
             
             if (connectedUsers[i] == userId.name){
 
-                console.log('내가 움직이는중');
                 var divider = 500;
 
                 scene.children[i].position.x = userId.prex + timeDiff/divider * (userId.posx - userId.prex);
@@ -62,14 +61,11 @@ class animateFunction {
                 mixer[i].update(now);
 
                 if (scene.children[i].itemType == 'body'){
-
                     scene.children[i].children[0].position.set(0, 0, 0);
-                    
+
                     if (my_name == userId.name){
-    
                         var walkDistance = Math.sqrt((userId.posx - userId.prex)**2+(userId.posy - userId.prey)**2+(userId.posz - userId.prez)**2);
 
-                    
                         cam.posx = userId.prex - 2 * (userId.posx - userId.prex) / walkDistance;
                         cam.posy = userId.prey - 2 * (userId.posy - userId.prey) / walkDistance + 1.5;
                         cam.posz = userId.prez - 2 * (userId.posz - userId.prez) / walkDistance;
