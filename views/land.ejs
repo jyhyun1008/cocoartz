@@ -13,13 +13,17 @@
         <!--본격적인 HTML은 여기서부터-->
         
         <div class="width_full" style="text-align: center; background-color: #00000000;" id="userid_<%= userID %>">
-
             <canvas id="controller" style="z-index: 0; position: fixed; left: 0; top: 100px; background-color: #000"></canvas>
+            <canvas id="hiddenCanvas" style="z-index: 0; position: fixed; left: 0; top: 100px; background-color: #000"></canvas>
             <canvas id="threejs" style="z-index: 1; position: fixed; left: 0; top: 100px; mix-blend-mode: multiply;"></canvas>
             <h1>방 제목</h1>
             <div><%=userID %> 님, 안녕하세요!</div>
             <div id="sunrise" style="color: #0000;"><%=sunrise %></div>
             <div id="sunset" style="color: #0000;"><%=sunset %></div>
+            <svg height="150" width="150" class="controlCircle showChatBox">
+                <circle cx="75" cy="75" r="70" fill="#F0EEE4" fill-opacity="0.4" class="dropzone"/>
+                <circle cx="75" cy="75" r="30" fill="#F0EEE4" fill-opacity="0.6" class="centerCircle draggable" draggable="true"/>
+            </svg>
             <div class="chatroom showChatBox">
                 <div class="chatToggle"><i class='bx bx-chevrons-down' ></i></div>
                 <div id="chatWindow" class="chatBox activeChatBox"></div>
@@ -28,6 +32,7 @@
                     <input id="chatBtn" type="button" class="full_button" style="width: 100px;" value="전송!" disabled>
                 </div>
             </div>
+            <img>
         </div>
         <!--footer-->
         <div class="footer">
@@ -35,6 +40,7 @@
         </div>
 
         <script src="/socket.io/socket.io.js"></script>
+        <script src="https://unpkg.com/merge-images"></script>
         <script src="/js/land.js" type="module"></script>
         <script>
             

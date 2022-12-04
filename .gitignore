@@ -1,2 +1,3 @@
 node_modules/
 db/psql.js
+test/cpu-test.yaml

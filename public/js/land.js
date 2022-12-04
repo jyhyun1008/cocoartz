@@ -1,8 +1,8 @@
 import { OrbitControls } from '/js/three/OrbitControls.js';
 import * as THREE from '/js/three/three.module.js';
-import { FontLoader } from '/js/three/FontLoader.js';
 import { GLTFLoader } from '/js/three/GLTFLoader.js';
 import { CSS2DRenderer, CSS2DObject } from '/js/three/CSS2DRenderer.js';
+
 
 // 채팅방 토글
 
@@ -11,17 +11,21 @@ document.querySelector('.chatToggle').addEventListener('click', function(){
         document.querySelector('.chatroom').classList.remove('showChatBox');
         document.querySelector('.chatBox').classList.remove('activeChatBox');
         document.querySelector('.chatToggle').innerHTML = '<i class="bx bx-chevrons-up" ></i>';
+        document.querySelector('.controlCircle').classList.remove('showChatBox');
     } else {
         document.querySelector('.chatroom').classList.add('showChatBox');
         document.querySelector('.chatBox').classList.add('activeChatBox');
         document.querySelector('.chatToggle').innerHTML = '<i class="bx bx-chevrons-down" ></i>';
+        document.querySelector('.controlCircle').classList.add('showChatBox');
     }
 })
+
 
 // 3d 로딩 관련
 
 const canvas = document.querySelector('#threejs');
 const controller = document.querySelector('#controller');
+const manager = new THREE.LoadingManager();
 
 let INTERSECTED, raycaster;
 const pointer = new THREE.Vector2();
@@ -63,6 +67,9 @@ function mod(n, m) {
     return ((n % m) + m) % m;
   }
 
+//일단먼저 합성부터함
+var skytexture = new THREE.TextureLoader().load('/assets/textures/land/BasicSkyNight.png');
+
 setInterval(function() {
     var WhatTimeIsIt = mod(new Date().getTime()+32400000, 86400000);
     var MorningPassed = WhatTimeIsIt - (sunrise - 30*msPerMin);
@@ -70,20 +77,71 @@ setInterval(function() {
 
     if (WhatTimeIsIt < morningTwilight || WhatTimeIsIt > eveningTwilight){ //밤
         controller.style.backgroundColor = 'rgba('+dayNight[2][0]+', '+dayNight[2][1]+', '+dayNight[2][2]+')';
+        skytexture = new THREE.TextureLoader().load('/assets/textures/land/BasicSkyNight.png');
+        if (skyIndex >= 0){
+            scene.children[skyIndex].children[0].material = new THREE.MeshBasicMaterial({ map: skytexture });
+            scene.children[skyIndex].children[0].material.side = THREE.BackSide;
+        }
     } else if (WhatTimeIsIt >= morningTwilight && WhatTimeIsIt <= sunrise) { //아침
         if (MorningPassed < 15*msPerMin){
             controller.style.backgroundColor = 'rgba('+(dayNight[2][0]+(MorningPassed/15/msPerMin)*(dayNight[1][0]-dayNight[2][0]))+', '+(dayNight[2][1]+(MorningPassed/15/msPerMin)*(dayNight[1][1]-dayNight[2][1]))+', '+(dayNight[2][2]+(MorningPassed/15/msPerMin)*(dayNight[1][2]-dayNight[2][2]))+')';
+
+            mergeImages([
+                { src: '/assets/textures/land/BasicSkyNight.png' },
+                { src: '/assets/textures/land/BasicSkySunset.png', opacity: MorningPassed / 15/msPerMin }
+            ])
+            .then(b64 => skytexture = new THREE.TextureLoader(manager).load(b64));
+            if (skyIndex >= 0){
+                scene.children[skyIndex].children[0].material = new THREE.MeshBasicMaterial({ map: skytexture });
+                scene.children[skyIndex].children[0].material.side = THREE.BackSide;
+            }
+
         } else {
             controller.style.backgroundColor = 'rgba('+(dayNight[1][0]+((MorningPassed-15*msPerMin)/15/msPerMin)*(dayNight[0][0]-dayNight[1][0]))+', '+(dayNight[1][1]+((MorningPassed-15*msPerMin)/15/msPerMin)*(dayNight[0][1]-dayNight[1][1]))+', '+(dayNight[1][2]+((MorningPassed-15*msPerMin)/15/msPerMin)*(dayNight[0][2]-dayNight[1][2]))+')';
+
+            mergeImages([
+                { src: '/assets/textures/land/BasicSkySunset.png' },
+                { src: '/assets/textures/land/BasicSky.png', opacity: (MorningPassed - 15*msPerMin) / 15/msPerMin }
+            ])
+            .then(b64 => skytexture = new THREE.TextureLoader(manager).load(b64));
+            if (skyIndex >= 0){
+                scene.children[skyIndex].children[0].material = new THREE.MeshBasicMaterial({ map: skytexture });
+                scene.children[skyIndex].children[0].material.side = THREE.BackSide;
+            }
         }
     } else if (WhatTimeIsIt >= sunset && WhatTimeIsIt <= eveningTwilight) { //저녁
         if (EveningPassed < 15*msPerMin){
             controller.style.backgroundColor = 'rgba('+(dayNight[0][0]+(EveningPassed/15/msPerMin)*(dayNight[1][0]-dayNight[0][0]))+', '+(dayNight[0][1]+(EveningPassed/15/msPerMin)*(dayNight[1][1]-dayNight[0][1]))+', '+(dayNight[0][2]+(EveningPassed/15/msPerMin)*(dayNight[1][2]-dayNight[0][2]))+')';
+
+            mergeImages([
+                { src: '/assets/textures/land/BasicSky.png' },
+                { src: '/assets/textures/land/BasicSkySunset.png', opacity: EveningPassed / 15/msPerMin }
+            ])
+            .then(b64 => skytexture = new THREE.TextureLoader(manager).load(b64));
+            if (skyIndex >= 0){
+                scene.children[skyIndex].children[0].material = new THREE.MeshBasicMaterial({ map: skytexture });
+                scene.children[skyIndex].children[0].material.side = THREE.BackSide;
+            }
         } else {
             controller.style.backgroundColor = 'rgba('+(dayNight[1][0]+((EveningPassed-15*msPerMin)/15/msPerMin)*(dayNight[2][0]-dayNight[1][0]))+', '+(dayNight[1][1]+((EveningPassed-15*msPerMin)/15/msPerMin)*(dayNight[2][1]-dayNight[1][1]))+', '+(dayNight[1][2]+((EveningPassed-15*msPerMin)/15/msPerMin)*(dayNight[2][2]-dayNight[1][2]))+')';
+
+            mergeImages([
+                { src: '/assets/textures/land/BasicSkySunset.png' },
+                { src: '/assets/textures/land/BasicSkyNight.png', opacity: (EveningPassed - 15*msPerMin) / 15/msPerMin }
+            ])
+            .then(b64 => skytexture = new THREE.TextureLoader(manager).load(b64));
+            if (skyIndex >= 0){
+                scene.children[skyIndex].children[0].material = new THREE.MeshBasicMaterial({ map: skytexture });
+                scene.children[skyIndex].children[0].material.side = THREE.BackSide;
+            }
         }
     } else { //낮
         controller.style.backgroundColor = 'rgba('+dayNight[0][0]+', '+dayNight[0][1]+', '+dayNight[0][2]+')';
+        skytexture = new THREE.TextureLoader().load('/assets/textures/land/BasicSky.png');
+        if (skyIndex >= 0){
+            scene.children[skyIndex].children[0].material = new THREE.MeshBasicMaterial({ map: skytexture });
+            scene.children[skyIndex].children[0].material.side = THREE.BackSide;
+        }
     }
     setTimeout(()=>{
         if (controller.className === undefined){
@@ -128,6 +186,7 @@ var connectedUsers = [];
 var mixer = [];
 var index = 0;
 var lastindex;
+var skyIndex;
 
 var sceneAnimation;
 
@@ -138,14 +197,15 @@ function landLoader(){
         land.children[0].material = new THREE.MeshBasicMaterial({ color: 0x009900 });
         land.children[0].material.side = THREE.DoubleSide;
         land.itemType = 'space';
+        collidableMeshList.push(land);
         scene.add( land );
         index++;
     });
     landload.load( '/assets/models/land/SkyBase.gltf', function ( gltf ) {
         var sky = gltf.scene;
+
+        skyIndex = index;
         
-        sky.children[0].material = new THREE.MeshBasicMaterial({ color: 0x99eeff });
-        sky.children[0].material.side = THREE.BackSide;
         sky.itemType = 'space';
         scene.add( sky );
         index++;
@@ -173,8 +233,8 @@ function landLoader(){
         var item = gltf.scene;
         var itemtex = item.children[0];
 
-        var texture = new THREE.TextureLoader().load('/assets/textures/colormap.png');
-        itemtex.material = new THREE.MeshBasicMaterial({ map: texture });
+        var texture = new THREE.TextureLoader().load('/assets/textures/plant/BasicTreem.png');
+        itemtex.material = new THREE.MeshBasicMaterial({ map: texture, transparent: true });
 
         item.position.x = -1;
         item.position.z = -3;
@@ -183,6 +243,8 @@ function landLoader(){
         item.itemType = 'plant';
         item.userName = 'String';
 
+        collidableMeshList.push(item);
+
         scene.add( item );
         index++;
 
@@ -190,41 +252,11 @@ function landLoader(){
     });
 }
 
+var isLoadingMe = false;
+
 function avatarLoader(name, x, y, z, dir) {
 
-    var text;
     lastindex = index;
-
-    const loader = new FontLoader();
-    loader.load( 'https://unpkg.com/three@0.77.0/examples/fonts/helvetiker_regular.typeface.json', function ( font ) {
-
-        const matLite = new THREE.MeshBasicMaterial( {
-            color: fontcolor,
-            transparent: true,
-            opacity: 1,
-            side: THREE.DoubleSide
-        } );
-
-        const shapes = font.generateShapes( '', 0.1);
-        const geometry = new THREE.ShapeGeometry( shapes );
-        geometry.computeBoundingBox();
-
-        const xMid = - 0.5 * ( geometry.boundingBox.max.x - geometry.boundingBox.min.x );
-        geometry.translate( xMid, 0, 0 );
-
-        text = new THREE.Mesh( geometry, matLite );
-        text.position.x = x;
-        text.position.y = y + 1.5;
-        text.position.z = z;
-
-        text.itemType = 'text';
-        text.userName = name;
-
-        scene.add( text );
-        connectedUsers[index] = name;
-        index++;
-
-    });
 
     var skeleton, base;
     
@@ -241,17 +273,33 @@ function avatarLoader(name, x, y, z, dir) {
 
         skeleton = new THREE.SkeletonHelper( base );
         skeleton.visible = false;
+        
 
-        base.itemType = 'avatar';
+        const rootBone = skeleton.bones[ 0 ];
+        basetex.add( rootBone );
+
+        //bind the skeleton to the mesh
+
+        //basetex.bind( skeleton );
+
+
+        base.itemType = 'body';
         base.userName = name;
 
-        base.position.x = x;
-        base.position.y = y;
-        base.position.z = z;
+        base.children[0].position.x = x;
+        base.children[0].position.y = y;
+        base.children[0].position.z = z;
+
+        console.log(base);
         base.children[0].rotation.z = dir;
+
 
         scene.add( base );
         base.add( skeleton );
+        
+        if (name == my_name){
+            my_index = index;
+        }
 
         eval('mixer['+index+'] = new THREE.AnimationMixer( base )');
         connectedUsers[index] = name;
@@ -290,17 +338,19 @@ function avatarLoader(name, x, y, z, dir) {
                 connectedUsers[index] = name;
                 index++;
                 if (a == itemArr.length - 1){
+                    if (isLoadingMe){
+                        var timeOut = 500;
+                        isLoadingMe = false;
+                    } else {
+                        var timeOut = 20;
+                    }
                     setTimeout(()=>{
                         actionPusher(pose);
                         setTimeout(()=>{
-                            console.log(pose);
-                            console.log(action);
-                            console.log(lastindex, index);
-                            console.log(connectedUsers);
                             animate();
                             console.log(scene);
-                        }, 300)
-                    }, 500)
+                        }, 100)
+                    }, timeOut)
                 }
             })
               },5*a)
@@ -315,6 +365,7 @@ function actionPusher(pose){
         for (var j=0; j < pose.length; j++){
             if (mixer[i] !== undefined){
                 action[i].push( mixer[i].clipAction( pose[j] ).play() );
+                console.log('포즈를 넣었어요!');
             }
         }
     }
@@ -329,6 +380,10 @@ var my_position = {
     dir: 0
 };
 
+var my_index = 0;
+
+var collidableMeshList = [];
+
 var socket = io();
 socket.on('connect', function(){
 
@@ -342,38 +397,185 @@ socket.on('connect', function(){
 
 });
 
+var arrCircle = document.querySelector(".centerCircle");
+
+arrCircle.addEventListener( "mousemove", mousemove );
+arrCircle.addEventListener( "mousedown", mousedown );
+arrCircle.addEventListener( "mouseup", mouseup );
+arrCircle.addEventListener( "mouseleave", mouseup );
+
+arrCircle.addEventListener( "touchstart", mousedown );
+arrCircle.addEventListener( "touchmove", mousemove );
+arrCircle.addEventListener( "touchend", mouseup );
+arrCircle.addEventListener( "touchleave", mouseup );
+arrCircle.addEventListener( "touchcancel", mouseup );
+
+var svg = document.querySelector(".controlCircle");
+var bb = svg.getBoundingClientRect();
+
+var originY = 75;
+var originX = 75;
+
+var iCircleX, iCircleY;
+var iStartX, iStartY;
+var iX, iY;
+
+var timerStart;
+var timerIndex;
+
+function mousedown(e) {
+    if (e.touches) {e = e.touches[0];}
+    iStartX = e.clientX - bb.left;
+    iStartY = e.clientY - bb.top;
+
+    iCircleX = 75;
+    iCircleY = 75;
+    e.target.setAttribute("isDrag", 1);
+
+    timerStart = new Date();
+    timerIndex = 0;
+}
+
+
+function mousemove(e)
+{
+    if (e.touches) {e = e.touches[0];}
+
+    var timer = new Date() - timerStart;
+    var iIsDrag = e.target.getAttribute( "isDrag" );
+
+    var xdir = my_position.x - camera.position.x;
+    var zdir = camera.position.z - my_position.z;
+    var pre_position = my_position;
+
+    if (zdir > 0){
+        my_position.dir = (Math.atan((xdir)/(zdir)))%(2*Math.PI);
+    } else {
+        my_position.dir = (-Math.PI + Math.atan((xdir)/(zdir)))%(2*Math.PI);
+    }
+
+    if( iIsDrag  && (timer > timerIndex * 500)) {
+        iIsDrag = parseInt( iIsDrag );
+
+        if( iIsDrag == 1 ) {
+            iX = (e.clientX - bb.left) - iStartX + iCircleX;
+            iY = (e.clientY - bb.top) - iStartY + iCircleY;
+
+            e.target.setAttribute( "cx", iX );
+            e.target.setAttribute( "cy", iY );
+
+            if (iX-75 != 0 || -iY+75 != 0){
+
+                if ( iX - 75 < 0) {
+                    var angle = (Math.atan((-iY+75)/(iX-75)) + Math.PI)% (2*Math.PI);
+                } else {
+                    var angle = (Math.atan((-iY+75)/(iX-75)))% (2*Math.PI);
+                }
+                
+                if (angle !== NaN ){
+                    my_position.x += 1* Math.cos(angle - my_position.dir);
+                    my_position.z -= 1* Math.sin(angle - my_position.dir);
+                    my_position.dir = (- angle + my_position.dir + Math.PI/2)% (2*Math.PI);
+                    //console.log(my_position.x, my_position.z, angle, my_position.dir);
+                    collisionDetection(pre_position);
+                }
+                timerIndex++;
+            }
+        }
+    }
+}
+
+function mouseup(e){
+    var iIsDrag = e.target.getAttribute( "isDrag" );
+
+    if( iIsDrag ) {
+        iIsDrag = parseInt( iIsDrag );
+
+        if( iIsDrag == 1 ) {
+            iX = (e.clientX - bb.left) - iStartX + iCircleX;
+            iY = (e.clientY - bb.top) - iStartY + iCircleY;
+
+            e.target.setAttribute( "cx", originX );
+            e.target.setAttribute( "cy", originY );
+            e.target.setAttribute( "isDrag", 0 );
+        }
+    }
+}
+
+let walker;
+
 document.addEventListener('keydown', function(e){
     if (e.keyCode == 37 || e.keyCode == 38  || e.keyCode == 39 || e.keyCode == 40){
+        
+        if (e.repeat) return;
 
         var xdir = my_position.x - camera.position.x;
         var zdir = camera.position.z - my_position.z;
 
+        var pre_position = my_position;
+        
         if (zdir > 0){
             my_position.dir = (Math.atan((xdir)/(zdir)))%(2*Math.PI);
         } else {
             my_position.dir = (-Math.PI + Math.atan((xdir)/(zdir)))%(2*Math.PI);
         }
-
+        
         if (e.keyCode==37) { //왼쪽
-            my_position.x -= 2* Math.cos(my_position.dir);
-            my_position.z -= 2* Math.sin(my_position.dir);
+            my_position.x -= 1* Math.cos(my_position.dir);
+            my_position.z -= 1* Math.sin(my_position.dir);
             my_position.dir -= Math.PI/2;
         } else if (e.keyCode==38) { //위
-            my_position.x += 2* Math.sin(my_position.dir);
-            my_position.z -= 2* Math.cos(my_position.dir);
+            my_position.x += 1* Math.sin(my_position.dir);
+            my_position.z -= 1* Math.cos(my_position.dir);
         } else if (e.keyCode==39) { //오른쪽
-            my_position.x += 2* Math.cos(my_position.dir);
-            my_position.z += 2* Math.sin(my_position.dir);
+            my_position.x += 1* Math.cos(my_position.dir);
+            my_position.z += 1* Math.sin(my_position.dir);
             my_position.dir += Math.PI/2;
         } else if (e.keyCode==40) { //아래
-            my_position.x -= 2* Math.sin(my_position.dir);
-            my_position.z += 2* Math.cos(my_position.dir);
+            my_position.x -= 1* Math.sin(my_position.dir);
+            my_position.z += 1* Math.cos(my_position.dir);
             my_position.dir += Math.PI
         }
-        
-        socket.emit('positionChanged', my_name, my_position);
+        collisionDetection(pre_position);
+
+
+        walker = setInterval(() => {
+            var xdir = my_position.x - camera.position.x;
+            var zdir = camera.position.z - my_position.z;
+            
+            if (zdir > 0){
+                my_position.dir = (Math.atan((xdir)/(zdir)))%(2*Math.PI);
+            } else {
+                my_position.dir = (-Math.PI + Math.atan((xdir)/(zdir)))%(2*Math.PI);
+            }
+            
+            var pre_position = my_position;
+            
+            if (e.keyCode==37) { //왼쪽
+                my_position.x -= 1* Math.cos(my_position.dir);
+                my_position.z -= 1* Math.sin(my_position.dir);
+                my_position.dir -= Math.PI/2;
+            } else if (e.keyCode==38) { //위
+                my_position.x += 1* Math.sin(my_position.dir);
+                my_position.z -= 1* Math.cos(my_position.dir);
+            } else if (e.keyCode==39) { //오른쪽
+                my_position.x += 1* Math.cos(my_position.dir);
+                my_position.z += 1* Math.sin(my_position.dir);
+                my_position.dir += Math.PI/2;
+            } else if (e.keyCode==40) { //아래
+                my_position.x -= 1* Math.sin(my_position.dir);
+                my_position.z += 1* Math.cos(my_position.dir);
+                my_position.dir += Math.PI
+            }
+
+            collisionDetection(pre_position);
+        }, 500);
     }
 });
+
+document.addEventListener('keyup', function(e) {
+    clearInterval(walker);
+  });
 
 function onPointerMove( event ) {
     pointer.x = (( event.clientX / window.innerWidth ) * 2 - 1);
@@ -382,8 +584,78 @@ function onPointerMove( event ) {
     plainpointer.y = event.clientY;
 }
 
+    //collision detection
+function collisionDetection(pre_position){
+
+    var originPoint = scene.children[my_index].children[0].children[0].geometry.getAttribute('position');
+
+    const localVertex = new THREE.Vector3();
+    const globalVertex = new THREE.Vector3();
+
+    for (var i = 0; i < originPoint.count; i++)
+    {		
+        localVertex.fromBufferAttribute( originPoint, i );
+        globalVertex.copy( localVertex ).applyMatrix4( scene.children[my_index].children[0].children[0].matrixWorld );  
+    }
+    const directionVector = globalVertex.sub( scene.children[my_index].position );
+    var ray = new THREE.Raycaster( new THREE.Vector3(my_position.x, my_position.y+1, my_position.z), directionVector.normalize() );
+    var collisionResults = ray.intersectObjects( collidableMeshList , true);
+
+    if ( collisionResults.length > 0 && collisionResults[0].distance <= directionVector.length()){
+        my_position = pre_position;
+    } else {
+       yDirectionCollision();
+    }
+    controls.update();
+}
+
+var freeFall;
+function yDirectionCollision(){
+
+    const directionVector = new THREE.Vector3(0, 0.1, 0);
+    var ray = new THREE.Raycaster( new THREE.Vector3(my_position.x, my_position.y, my_position.z), directionVector.normalize() );
+    var collisionResults = ray.intersectObjects( collidableMeshList , true);
+
+    if ( collisionResults.length > 0 && collisionResults[0].distance - 0.05 <= directionVector.length()){
+        socket.emit('positionChanged', my_name, my_position);
+        
+    } else if (my_position.y > -3) {
+        socket.emit('positionChanged', my_name, my_position);
+        freeFall = setInterval(() => {
+                my_position.y -= 0.2;
+                camera.position.y -= 0.2;
+                socket.emit('positionChanged', my_name, my_position);
+                if (my_position.y <= -1.5) {
+                    clearInterval(freeFall);
+                    my_position = {
+                        x: 0,
+                        y: 0,
+                        z: 0,
+                        dir: 0
+                    };
+                    //camera.position.set(0, 1, -2);
+                    //controls.target.set(my_position.x, my_position.y +1, my_position.z);
+
+                    socket.emit('mineCraft', my_name);
+                    socket.emit('positionChanged', my_name, my_position);
+                }
+            }, 500);
+    } else if (collisionResults[0].distance - 0.05 - directionVector.length() <= 0.5) {
+        addY = collisionResults[0].distance - directionVector.length()
+        console.log('앞의 지대가 높아요.');
+        my_position.y += addY;
+        camera.position.y += addY;
+
+        controls.target.set(my_position.x, my_position.y +1, my_position.z);
+        socket.emit('positionChanged', my_name, my_position);
+
+    }
+    controls.update();
+}
+
 socket.on('loadNewbieAvatar', function(avatar){
     if (avatar.newbie == my_name) {
+        isLoadingMe = true;
         for(var key in avatar.user){
             var x = avatar.user[key].position.x;
             var y = avatar.user[key].position.y;
@@ -439,7 +711,7 @@ var animate = function () {
     var now = clock.getDelta();
 
         for(var i = 0; i < connectedUsers.length; i++){
-            if ( scene.children[i].itemType == 'avatar' ){
+            if ( scene.children[i].itemType == 'body' || scene.children[i].itemType == 'avatar' ){
                 for (var j = 0; j < pose.length; j++){
                     if (action[i] === undefined){
                         cancelAnimationFrame(sceneAnimation);
@@ -458,10 +730,10 @@ var animate = function () {
                 mixer[i].update(now);
             }
         }
-        setTimeout(()=>{
+        //setTimeout(()=>{
             controls.update();
             render();
-        }, 0);
+        //}, 0);
 };
 
 function animateWalk(cam, userId, startTime) {
@@ -472,12 +744,27 @@ function animateWalk(cam, userId, startTime) {
     for(var i = 0; i < connectedUsers.length; i++){
         
         if (connectedUsers[i] == userId.name){
-            var divider = 1000;
+            var divider = 500;
 
-            scene.children[i].position.x = userId.prex + timeDiff/divider * (userId.posx - userId.prex);
-            scene.children[i].position.y = userId.prey + timeDiff/divider * (userId.posy - userId.prey);
-            scene.children[i].position.z = userId.prez + timeDiff/divider * (userId.posz - userId.prez);
-            if ( scene.children[i].itemType == 'avatar' ) {
+            if ( scene.children[i].itemType == 'body' || scene.children[i].itemType == 'avatar'){
+                if (my_name == userId.name){
+
+                    var walkDistance = Math.sqrt((userId.posx - userId.prex)**2+(userId.posy - userId.prey)**2+(userId.posz - userId.prez)**2);
+                
+                    cam.posx = userId.prex - 2 * (userId.posx - userId.prex) / walkDistance;
+                    cam.posy = userId.prey - 2 * (userId.posy - userId.prey) / walkDistance + 1.5;
+                    cam.posz = userId.prez - 2 * (userId.posz - userId.prez) / walkDistance;
+
+                    camera.position.x = cam.prex + timeDiff/divider * (cam.posx - cam.prex);
+                    camera.position.y = cam.prey + timeDiff/divider * (cam.posy - cam.prey);
+                    camera.position.z = cam.prez + timeDiff/divider * (cam.posz - cam.prez);
+                    controls.target.set(scene.children[i].position.x, scene.children[i].position.y +1, scene.children[i].position.z);
+
+                }
+
+                scene.children[i].position.x = userId.prex + timeDiff/divider * (userId.posx - userId.prex);
+                scene.children[i].position.y = userId.prey + timeDiff/divider * (userId.posy - userId.prey);
+                scene.children[i].position.z = userId.prez + timeDiff/divider * (userId.posz - userId.prez);
                 scene.children[i].children[0].rotation.z = userId.posdir + Math.PI;
 
                 for (var j = 0; j < pose.length; j++){
@@ -488,38 +775,20 @@ function animateWalk(cam, userId, startTime) {
                     }
                 }
                 mixer[i].update(now);
-                
-            } else if ( scene.children[i].itemType == 'text' ) {
-                scene.children[i].position.y += 1.5;
-                scene.children[i].rotation.y = userId.posdir + Math.PI;
 
-                if (my_name == userId.name){
-                
-                    cam.posx = userId.prex;
-                    cam.posy = userId.prey+1.5;
-                    cam.posz = userId.prez;
-
-                    camera.position.x = cam.prex + timeDiff/1000 * (cam.posx - cam.prex);
-                    camera.position.y = cam.prey + timeDiff/1000 * (cam.posy - cam.prey);
-                    camera.position.z = cam.prez + timeDiff/1000 * (cam.posz - cam.prez);
-                    controls.target.set(scene.children[i].position.x, scene.children[i].position.y -0.5, scene.children[i].position.z);
-
-                }
             }
         }
     }
 
-    //setTimeout(()=>{
         controls.update();
         render();
-    //}, 0)
 
-    if (timeDiff < 1000) {
+    if (timeDiff < 500) {
         requestAnimationFrame( function(){
+
             animateWalk(cam, userId, startTime);
         } );
-    } else if (timeDiff >= 1000) {
-        
+    } else if (timeDiff >= 500) {
         animate();
     }
 }
@@ -601,7 +870,6 @@ window.addEventListener('keyup', ()=>{
 })
 
 var socket = io();
-var members = [];
 
 var chatWindow = document.getElementById('chatWindow');
 
@@ -658,17 +926,17 @@ function drawChatMessage(data){
             chatDiv.textContent = data.message;
             chatDiv.style.marginTop = '-1em';
             const chatLabel = new CSS2DObject( chatDiv );
-            chatLabel.position.set( 0, 0.5, 0 );
+            chatLabel.position.set( 0, 1.5, 0 );
             scene.children[i].add( chatLabel );
             chatLabel.layers.set( 0 );
-
-            console.log('document.querySelector(".'+data.name+' chatDiv")')
-        
+            
             setTimeout(() => {
-                eval('document.querySelector(".'+data.name+'").remove();');
-                for (var j = 0; j < scene.children[i].children.length; j++){
-                    if (scene.children[i].children[j].isCSS2DObject){
-                        scene.children[i].children.splice(j, 1);
+                if (eval('document.querySelector(".'+data.name+'")')){
+                    eval('document.querySelector(".'+data.name+'").remove();');
+                    for (var j = 0; j < scene.children[i].children.length; j++){
+                        if (scene.children[i].children[j].isCSS2DObject){
+                            scene.children[i].children.splice(j, 1);
+                        }
                     }
                 }
             }, 10000);

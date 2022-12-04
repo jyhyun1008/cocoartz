@@ -105,7 +105,7 @@ app.post("/login", function (req, res) {
 
 // 소켓 io
 
-const io = require('socket.io')(server);
+const io = require('socket.io')(server, { maxHttpBufferSize: 1e8 });
 
 let room_id = 'test';
 eval("var "+room_id+"_User = {}");
@@ -113,7 +113,7 @@ eval("var "+room_id+"_User = {}");
 //test_User = { test: {position: {x: 0}} } 같은 느낌으로 저장
 
 io.sockets.on('connection', function(socket){
-    
+
     socket.join("_room" + room_id);
     socket.on('newUserConnect', function(name, position){
         socket.name = name;
@@ -146,6 +146,13 @@ io.sockets.on('connection', function(socket){
         io.sockets.emit('updateMessage', {
             name : '<시스템>',
             message : socket.name + '님이 퇴장했습니다.'
+        });
+    });
+
+    socket.on('mineCraft', function(name){
+        io.sockets.emit('updateMessage', {
+            name : '<시스템>',
+            message : name + '님이 높은 곳에서 떨어졌습니다.'
         });
     });
 

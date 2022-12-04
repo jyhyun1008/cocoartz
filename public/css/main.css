@@ -9,8 +9,15 @@
 }
 
 @font-face {
-    font-family: 'HSGooltokki';
-    src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2210-2@1.0/HSGooltokki.woff2') format('woff2');
+    font-family: 'UhBeeSe_hyun';
+    src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_five@.2.0/UhBeeSe_hyun.woff') format('woff');
+    font-weight: normal;
+    font-style: normal;
+    }
+
+@font-face {
+    font-family: 'IM_Hyemin-Bold';
+    src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2106@1.1/IM_Hyemin-Bold.woff2') format('woff');
     font-weight: normal;
     font-style: normal;
 }
@@ -19,12 +26,12 @@
     --accent: #70594D;
     --inactaccent: #70594D88;
     --bg: #F0EEE4;
-    --text: #414141;
+    --text: #585858;
     --accenttext: #F0EEE4;
 }
 
 body {
-    font-family: 'KoddiUDOnGothic-Regular', Arial, Helvetica, sans-serif;
+    font-family: 'IM_Hyemin-Bold', Arial, Helvetica, sans-serif;
     font-size: 16px;
     margin: 0px;
     background-color: var(--bg);
@@ -42,14 +49,14 @@ a {
 }
 
 h1 {
-    font-family: 'HSGooltokki';
+    font-family: 'UhBeeSe_hyun';
     color: var(--accent);
     font-size: 2em;
     text-align: center;
 }
 
 h2 {
-    font-family: 'HSGooltokki';
+    font-family: 'UhBeeSe_hyun';
     color: var(--accent);
     font-size: 1.7em;
     text-align: center;
@@ -74,6 +81,12 @@ code, .output__user__name {
     background-color: var(--accent);
     color: var(--accenttext);
     text-align: center;
+    position: fixed;
+    width: 100%;
+}
+
+.footer {
+    top: calc( 100vh - 100px );
 }
 
 .width-400px {
@@ -83,6 +96,7 @@ code, .output__user__name {
     color: var(--text);
     margin: 0 auto;
     position: relative;
+    top: 100px;
     overflow: scroll;
 }
 
@@ -93,6 +107,7 @@ code, .output__user__name {
     color: var(--text);
     margin: 0 auto;
     position: relative;
+    top: 100px;
     overflow: scroll;
 }
 
@@ -162,6 +177,7 @@ code, .output__user__name {
 }
 
 .width80_button {
+    font-family: 'IM_Hyemin-Bold', Arial, Helvetica, sans-serif;
     width: 80%;
     height: 40px;
     border: 0;
@@ -196,6 +212,7 @@ code, .output__user__name {
 }
 
 .full_button {
+    font-family: 'IM_Hyemin-Bold', Arial, Helvetica, sans-serif;
     height: 40px;
     border: 0;
     border-radius: 15px;
@@ -229,7 +246,7 @@ code, .output__user__name {
     top: calc(100vh - 140px);
 }
 
-.showChatBox {
+.chatroom.showChatBox {
     height: 250px !important;
     top: calc(100vh - 350px);
 }
@@ -266,4 +283,23 @@ code, .output__user__name {
     margin: -0.75em calc(50vw - 20px);
     width: 40px;
     position: absolute;
+}
+
+.controlCircle {
+    position: fixed;
+    z-index: 3;
+    top: calc(100vh - 290px);
+    left: 0;
+}
+  
+.centerCircle {
+    cursor: move;
+}
+
+.controlCircle.showChatBox {
+    top: calc(100vh - 500px);
+}
+
+#hiddenCanvas {
+    display: none;
 }
