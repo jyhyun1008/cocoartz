@@ -46,11 +46,11 @@ class objectLoader {
             scene.add( sky );
             index++;
         });
-        landload.load('/assets/models/block/BasicHouse.gltf', function (gltf) {
+        landload.load('/assets/models/house/BasicHouse.gltf', function (gltf) {
             var item = gltf.scene;
             var itemtex = item.children[0];
 
-            var texture = new THREE.TextureLoader().load('/assets/textures/block/BasicHousem.png');
+            var texture = new THREE.TextureLoader().load('/assets/textures/house/BasicHousem.png');
             itemtex.material = new THREE.MeshBasicMaterial({ map: texture });
 
             item.position.x = 0;

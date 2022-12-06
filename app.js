@@ -9,6 +9,9 @@ const http = require('http');
 const app = express();
 const path = require('path');
 const server = http.createServer(app);
+const fs = require('fs');
+
+const bcrypt = require('bcrypt');
 const cookieParser = require('cookie-parser');
 const { checkLogin } = require("./module/checkLogin.js");
 const { getSunrise, getSunset } = require('sunrise-sunset-js');
@@ -33,13 +36,18 @@ if ( db.user == config.user ) {
 }
 
 function dbQuery(query) {
-    db
-    .query(query)
-    .then((res) => {
-        console.log(res.rows[0]);
-        db.end();
+    return new Promise(function (resolve, reject){
+        db
+        .query(query)
+        .then((res) => {
+            if (res.rows && res.rows[0]) {
+                resolve(res.rows);
+            } else {
+                resolve( true );
+            }
+        })
+        .catch((e) => reject(Error(e.stack)));
     })
-    .catch((e) => console.error(e.stack));
 }
 
 // 라우팅
@@ -50,52 +58,166 @@ app.use(express.static(__dirname + '/public'));
 
 app.get('/', function (req, res) {
     cookie = checkLogin(req, db).cookie;
-    res.render('index', { userID: cookie.userID, userName: cookie.userName, isLogin: cookie.isLogin, msg: cookie.msg});
+    res.render('index', { uuid: cookie.uuid, userID: cookie.userID, userName: cookie.userName, isLogin: cookie.isLogin, msg: cookie.msg});
 });
 app.get('/about', function (req, res) {
     cookie = checkLogin(req, db).cookie;
-    res.render('about', { userID: cookie.userID, userName: cookie.userName, isLogin: cookie.isLogin, msg: cookie.msg});
+    res.render('about', { uuid: cookie.uuid, userID: cookie.userID, userName: cookie.userName, isLogin: cookie.isLogin, msg: cookie.msg});
 });
 function mod(n, m) {
     return ((n % m) + m) % m;
   }
 
-app.get('/land/:landID', function (req, res) {
+app.get('/town/:townID', function (req, res) {
     cookie = checkLogin(req, db).cookie;
     var sunrise = mod(new Date(getSunrise(36.3, 127.4)).getTime()+32400000, 86400000);
     var sunset = mod(new Date(getSunset(36.3, 127.4)).getTime()+32400000, 86400000);
     var today = mod(new Date().getTime()+32400000, 86400000);
-    res.render('land', { landID: req.params.landID, sunrise: sunrise, sunset: sunset, userID: cookie.userID, userName: cookie.userName, isLogin: cookie.isLogin, msg: cookie.msg});
+    res.render('town', { townID: req.params.townID, sunrise: sunrise, sunset: sunset, uuid: cookie.uuid, userID: cookie.userID, userName: cookie.userName, isLogin: cookie.isLogin, msg: cookie.msg});
 });
 
 app.get('/login', function (req, res) {
     cookie = checkLogin(req, db).cookie;
-    res.render('login', { userID: cookie.userID, userName: cookie.userName, isLogin: cookie.isLogin, msg: cookie.msg});
+    console.log(cookie);
+    res.render('login', { uuid: cookie.uuid, userID: cookie.userID, userName: cookie.userName, isLogin: cookie.isLogin, msg: cookie.msg});
 });
 app.get("/logout", function(req, res){
     console.log("clear cookie");
     // 로그아웃 쿠키 삭제
-    res.clearCookie('userid');
-    
+    res.clearCookie('uuid');
     res.redirect('/login');
 });
 
-// 로그인
+// 설치, 관리와 관련된 리다이렉트
 
-let result = {rows: [{userID: 'test', userPW: '1234', userName: '테스트'}]}
+app.get("/install", function(req, res) {
+    const installQuery = fs.readFileSync("./db/installQuery.sql").toString();
+    dbQuery(installQuery)
+    .then(function(result1) {
+        if ( result1 ){
+            dbQuery(`SELECT * FROM users WHERE true;`)
+            .then(function(result2) {
+                if ( result2.length ){
+                    res.redirect('/admin');
+                } else {
+                    cookie = checkLogin(req, db).cookie;
+                    if (cookie.uuid){
+                        res.send('뭔가 이상하네요. <a href="/logout">로그아웃</a> 해 보시겠어요?');
+                    } else {
+                        res.render('install', { isLogin: false, adminExists: false });
+                    }
+                }
+            })
+            .catch(e => {
+                res.send('뭔가 문제가 생긴 것 같아요.');
+            })
+        } else {
+            res.send('설치에 문제가 생긴 것 같아요.');
+        }
+    })
+    .catch(e => {
+        res.send('설치에 문제가 생긴 것 같아요.');
+    })
+})
+
+app.get('/admin', function (req, res) {
+    cookie = checkLogin(req, db).cookie;
+    if (!cookie.uuid) {
+        res.send ('쿠키가 없어용');
+        //쿠키 없으면 첫번째 경우는 테이블에 데이터가 아예 없는 경우가 있고 두번째 경우는 로그인안한 경우가 있는데 일단 테이블에 데이터가 하나라도 있으면 로그인 페이지 출력하기. 아니면 어드민 생성 페이지 출력
+    } else {
+        res.send ('쿠키가 있어용');
+        //isadmin이 false이면 로그인페이지 ㄱㄱ
+    }
+});
+
+// 회원가입
 
 app.use(express.json());
 app.use(express.urlencoded({ extended : true}));
 app.use(cookieParser());
 
+const joinSQL = async (userid, encryptedpw, useremail, isadmin) => {
+    dbQuery(`INSERT INTO users (userid, userpw, useremail, username, townname, isadmin) VALUES ('`+userid+`', '`+encryptedpw+`', '`+useremail+`', '`+userid+`', '`+userid+` 님의 홈타운', `+isadmin+`);`). then(function(result1){
+        if (result1){
+            dbQuery(`SELECT uuid FROM users WHERE userid = '`+userid+`';`).then(function(result2){
+                if (result2.length){
+                    const uuid = result2[0].uuid;
+                    dbQuery(`INSERT INTO usersavatar (uuid) VALUES ('`+uuid+`');`+
+                    `INSERT INTO itemownedavatar (owneruuid, itemtype, itemid, isonavatar) VALUES ('`+uuid+`', 'skin', 'basicSkin', true), ('`+uuid+`', 'hair', 'basicHair', true), ('`+uuid+`', 'top', 'basicTop', true), ('`+uuid+`', 'bottom', 'basicPants', true), ('`+uuid+`', 'shoes', 'basicShoes', true);`).then(function(result3){
+                        if ( result3 ){
+                            return true;
+                        } else {
+                            return false;
+                        }
+                    })
+                    .catch(e => {
+                        return false;
+                    })
+                }
+            })
+            .catch(e => {
+                return false;
+            })
+        } else {
+            return false;
+        }
+    })
+    .catch(e => {
+        return false;
+    })
+}
+
+
+app.post("/install", function (req, res) {
+    const email = req.body.email,
+    id = req.body.id,
+    password = req.body.password,
+    isAdmin = true;
+    const encryptedPw = bcrypt.hashSync(password, 10);
+
+    if (joinSQL(id, encryptedPw, email, isAdmin)) {
+
+        const getUuid = async (userid) => {
+            dbQuery(`SELECT uuid FROM users WHERE userid = '`+userid+`';`).then(function(result){
+                if (result.length){
+                    console.log(result[0].uuid);
+                    res.setHeader('Set-Cookie', 'uuid='+result[0].uuid);
+                    res.redirect('/dashboard');
+                    //return true;
+                } else{
+                    res.redirect('/install');
+                    return false;
+                }
+            })
+            .catch(e => {
+                res.redirect('/install');
+                return false;
+            })
+        }
+        
+        console.log("계정 생성됨: "+'userid='+id+';username='+id+';login=true');
+        getUuid(id);
+        
+    } else {
+        console.log("계정 생성되지 않음.");
+        res.redirect('/install');
+    }
+})
+
+// 로그인
+
+let result = {rows: [{uid: 1, uuid: 'anyrandomvalue', userid: 'test', userpw: '$2b$10$4zQ3fB1PXKzjIlRxzJSSXux0KH4xIImmeXlc6pP06a.5VmA.D1r1C', useremail: 'test@cocoartz.kr', username: '테스트', townname: '테스트님의 홈타운', townbio: null, landtype: 'basicLand', skytype: 'basicSky', floortype: null, joineddate: 0, lastlogin: 0, isadmin: false }]}
+
 app.post("/login", function (req, res) {
     const id = req.body.id,
     password = req.body.password;
 
-    if (result.rows[0].userID === id && result.rows[0].userPW === password) {
-        const name = result.rows[0].userName;
+    if (result.rows[0].userid === id && bcrypt.compareSync(password, result.rows[0].userpw)) {
+        const name = result.rows[0].username;
+        const uuid = result.rows[0].uuid;
         console.log("로그인 성공: "+'userid='+id+';username='+name+';login=true');
-        res.setHeader('Set-Cookie', 'userid='+id);
+        res.setHeader('Set-Cookie', 'uuid='+uuid);
         res.redirect('/');
     } else {
         console.log("로그인 실패");

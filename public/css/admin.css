@@ -1,0 +1,314 @@
+
+@charset "utf-8";
+
+@font-face {
+    font-family: 'KoddiUDOnGothic-Regular';
+    src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2105_2@1.0/KoddiUDOnGothic-Regular.woff') format('woff');
+    font-weight: normal;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'UhBeeSe_hyun';
+    src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_five@.2.0/UhBeeSe_hyun.woff') format('woff');
+    font-weight: normal;
+    font-style: normal;
+    }
+
+@font-face {
+    font-family: 'IM_Hyemin-Bold';
+    src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2106@1.1/IM_Hyemin-Bold.woff2') format('woff');
+    font-weight: normal;
+    font-style: normal;
+}
+
+:root{
+    --bg: #70594D;
+    --inactaccent: #F0EEE488;
+    --accent: #F0EEE4;
+    --text: #fff;
+    --accenttext: #70594D;
+}
+
+body {
+    font-family: 'IM_Hyemin-Bold', Arial, Helvetica, sans-serif;
+    font-size: 16px;
+    margin: 0px;
+    background-color: var(--bg);
+    -ms-overflow-style: none;
+    line-height: 1.5em;
+}
+
+::-webkit-scrollbar {
+    display: none;
+  }
+
+a {
+    color: inherit;
+    text-decoration: none;
+}
+
+h1 {
+    font-family: 'UhBeeSe_hyun';
+    color: var(--accent);
+    font-size: 2em;
+    text-align: center;
+}
+
+h2 {
+    font-family: 'UhBeeSe_hyun';
+    color: var(--accent);
+    font-size: 1.7em;
+    text-align: center;
+}
+
+form {
+    overflow:auto;
+}
+
+code, .output__user__name {
+    background-color: var(--accent);
+    color: var(--accenttext);
+    border-radius: 15px;
+    padding: 5px;
+    margin-left: 10px;
+    margin-right:10px;
+}
+
+.navbar, .footer{
+    height: 100px;
+    line-height: 100px;
+    background-color: var(--accent);
+    color: var(--accenttext);
+    text-align: center;
+    position: fixed;
+    width: 100%;
+}
+
+.footer {
+    top: calc( 100vh - 100px );
+    top: calc(var(--vh, 1vh) * 100 - 100px);
+}
+
+.width-400px {
+    max-width: 400px;
+    height: calc( 100vh - 200px );
+    height: calc(var(--vh, 1vh) * 100 - 200px);
+    background-color: var(--bg);
+    color: var(--text);
+    margin: 0 auto;
+    position: relative;
+    top: 100px;
+    overflow: scroll;
+}
+
+.width_full {
+    width: 100vw;
+    height: calc( 100vh - 200px );
+    height: calc(var(--vh, 1vh) * 100 - 200px);
+    background-color: var(--bg);
+    color: var(--text);
+    margin: 0 auto;
+    position: relative;
+    top: 100px;
+    overflow: scroll;
+}
+
+.app__wrap{
+    margin: 0 auto;
+    padding: 50px 0 0;
+    position: relative;
+    max-width: 350px;
+    min-width: 200px;
+    width: 100%;
+    height: calc( 100vh - 200px );
+    height: calc(var(--vh, 1vh) * 100 - 200px);
+    border-top: 20px solid var(--text);
+    border-bottom: 20px solid var(--accent);
+    border-radius: 15px;
+    box-sizing: border-box;
+}
+
+.full-width {
+    width: 100%;
+    overflow:auto;
+    margin: 0 auto;
+    position: relative; 
+}
+
+.app__info{
+    position: absolute;
+    top: 0;
+    width: 100%;
+    height: 50px;
+    text-align: center;
+    line-height: 50px;
+    color: var(--accenttext);
+    background: var(--accent);
+}
+
+.app__window{
+    overflow-y: auto;
+    padding: 10px 20px;
+    height: calc( 100vh - 350px );
+    height: calc(var(--vh, 1vh) * 100 - 350px);
+    background: var(--bg);
+    text-align: left;
+}
+
+.output__user{
+    padding-top: 10px !important;
+    padding-bottom: 10px !important;
+}
+
+.app__input__wrap{
+    background: var(--accent);
+}
+
+.app__input__wrap:after{
+    content:'';
+    display:block;
+    clear:both;
+}
+
+.width80_input{
+    width: 80%;
+    height: 40px;
+    border: 0;
+    border-radius: 15px;
+    margin: 0 10%;
+    padding: 0;
+    text-indent: 10px;
+}
+
+.width80_button {
+    font-family: 'IM_Hyemin-Bold', Arial, Helvetica, sans-serif;
+    width: 80%;
+    height: 40px;
+    border: 0;
+    border-radius: 15px;
+    background-color: var(--inactaccent);
+    color: var(--accenttext);
+    margin: 0 10%;
+    padding: 0;
+    font-size: 16px;
+}
+
+.width80_button.active {
+    background-color: var(--accent);
+}
+
+.full_input {
+    float: left;
+    display: block;
+    height: 40px;
+    border: 0;
+    border-radius: 15px;
+    padding: 0;
+    text-indent: 10px;
+}
+
+.full_textarea {
+    float: left;
+    display: block;
+    border: 0;
+    border-radius: 15px;
+    padding: 0;
+}
+
+.full_button {
+    font-family: 'IM_Hyemin-Bold', Arial, Helvetica, sans-serif;
+    height: 40px;
+    border: 0;
+    border-radius: 15px;
+    background-color: var(--inactaccent);
+    color: var(--accenttext);
+    padding: 0;
+    font-size: 16px;
+}
+
+.full_button.active {
+    background-color: var(--accent);
+}
+
+.margin_yes {
+    margin-top: 10px;
+    margin-bottom: 10px;
+}
+
+.login-links {
+    font-size: 12px;
+    color: var(--accent);
+    text-align: center;
+}
+
+.chatroom {
+    width: 100%;
+    height: 40px;
+    position: fixed;
+    z-index: 2;
+    left: 0;
+    top: calc(100vh - 140px);
+    top: calc(var(--vh, 1vh) * 100 - 140px);
+}
+
+.chatroom.showChatBox {
+    height: 250px !important;
+    top: calc(100vh - 350px);
+    top: calc(var(--vh, 1vh) * 100 - 350px);
+}
+
+.chatBox {
+    display: none;
+    height: 210px;
+    background-color: var(--inactaccent);
+    color: var(--accenttext);
+    position: static;
+    text-align: justify;
+    overflow-y: auto;
+}
+
+.activeChatBox {
+    display: block !important;
+}
+
+.chatDiv {
+    background-color: var(--bg);
+    color: var(--text);
+    border-radius: 15px;
+    padding: 5px;
+    margin-left: 10px;
+    margin-right:10px;
+}
+
+.chatToggle{
+    font-size: 1.5em;
+    background-color: var(--accent);
+    color: var(--accenttext);
+    border-radius: 20px;
+    padding: 5px;
+    margin: -0.75em calc(50vw - 20px);
+    width: 40px;
+    position: absolute;
+}
+
+.controlCircle {
+    position: fixed;
+    z-index: 3;
+    top: calc(100vh - 290px);
+    top: calc(var(--vh, 1vh) * 100 - 290px);
+    left: 0;
+}
+  
+.centerCircle {
+    cursor: move;
+}
+
+.controlCircle.showChatBox {
+    top: calc(100vh - 500px);
+    top: calc(var(--vh, 1vh) * 100 - 500px);
+}
+
+#hiddenCanvas {
+    display: none;
+}

@@ -1,0 +1,44 @@
+
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" >
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <link rel="stylesheet" type="text/css" href="/css/admin.css">
+    <title>COCOARTZ!</title>
+</head>
+<body>
+    <%-include('./comp/adminnav.ejs') %>
+
+    <!--본격적인 HTML은 여기서부터-->
+
+    <div class="width-400px">
+        <h1>관리자 계정 생성</h1>
+        <div class="login-wrap">
+            <div class="login-form full-width">
+                <div>축하합니다! 코코아츠 설치가 완료되었습니다. 관리자 계정을 생성해 주세요.</div>
+                <form>
+                    <input id="adminEmail" type="text" class="width80_input margin_yes" autofocus placeholder="이메일 주소">
+                    <div style="width:80%; text-align: center; margin: 0 auto;" >id@example.com 형식으로 작성해주세요.</div>
+                    <input id="adminID" type="text" class="width80_input margin_yes" autofocus placeholder="아이디">
+                    <div style="width:80%; text-align: center; margin: 0 auto;" >4글자 이상 20글자 이하, 영문 대소문자와 숫자를 포함할 수 있습니다.</div>
+                    <input id="adminPW" type="password" class="width80_input margin_yes" placeholder="비밀번호">
+                    <div style="width:80%; text-align: center; margin: 0 auto;" >8글자 이상 50글자 이하, 영문 대소문자, 숫자, 특수문자 하나씩을 반드시 포함해야 합니다.</div>
+                    <input id="confirmPW" type="password" class="width80_input margin_yes" onkeyup="enterKey()" placeholder="비밀번호 확인">
+                    <input id="joinButton" type="button" class="width80_button margin_yes" value="관리자 계정 생성!" disabled>
+                </form>
+            </div>
+        </div>
+    </div>
+    <script src="/js/install.js"></script>
+
+    <!--footer-->
+    <div class="footer">
+        <div>COCOARTZ!</div>
+    </div>
+</body>
+</html>
+
+
+

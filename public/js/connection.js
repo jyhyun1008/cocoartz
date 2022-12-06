@@ -16,8 +16,8 @@ canvas = document.querySelector('#threejs');
 
 var pRatio = window.devicePixelRatio || 1
 
-const w = Math.round(pRatio * window.innerWidth)
-const h = Math.round(pRatio * (window.innerHeight - 200 ))
+var w = Math.round(pRatio * window.innerWidth)
+var h = Math.round(pRatio * (window.innerHeight - 200 ))
 canvas.width = w
 canvas.height = h
 //canvas.setAttribute('width', window.innerWidth);
@@ -25,7 +25,7 @@ canvas.height = h
 
 renderer = new THREE.WebGLRenderer({ canvas, alpha: false, });
 renderer.setSize( canvas.width, canvas.height, false);
-renderer.setPixelRatio( window.devicePixelRatio );
+renderer.setPixelRatio( pRatio );
 
 renderer.domElement.style.width = window.innerWidth + 'px';
 renderer.domElement.style.height = window.innerHeight - 200 + 'px';
@@ -35,9 +35,13 @@ camera.position.z = -2;
 camera.position.y = 1;
 
 labelRenderer = new CSS2DRenderer();
-labelRenderer.setSize( canvas.width, canvas.height );
+labelRenderer.setSize( canvas.width / pRatio / pRatio , canvas.height / pRatio / pRatio );
 labelRenderer.domElement.style.position = 'absolute'; 
 labelRenderer.domElement.style.top = '0px';
+
+labelRenderer.domElement.style.width = window.innerWidth + 'px';
+labelRenderer.domElement.style.height = window.innerHeight - 200 + 'px';
+
 document.querySelector('.width_full').appendChild( labelRenderer.domElement );
 
 controls = new OrbitControls( camera, renderer.domElement );
@@ -50,11 +54,23 @@ scene.background = new THREE.Color( 0xF0EEE4 );
 
 window.addEventListener('resize', function () { 
 
-    camera.aspect = canvas.width / (canvas.height);
+    w = Math.round(pRatio * window.innerWidth)
+    h = Math.round(pRatio * (window.innerHeight - 200 ))
+    canvas.width = w
+    canvas.height = h
+    
+    camera.aspect = canvas.width / canvas.height;
     camera.updateProjectionMatrix();
 
     renderer.setSize( canvas.width, canvas.height);
-    labelRenderer.setSize( canvas.width, canvas.height);
+    renderer.setPixelRatio( pRatio );
+
+    renderer.domElement.style.width = window.innerWidth + 'px';
+    renderer.domElement.style.height = window.innerHeight - 200 + 'px';
+
+    labelRenderer.setSize( canvas.width / pRatio , canvas.height / pRatio);
+    labelRenderer.domElement.style.width = window.innerWidth + 'px';
+    labelRenderer.domElement.style.height = window.innerHeight - 200 + 'px';
 
     controller.style.width = canvas.width;
     controller.style.height = canvas.height;
