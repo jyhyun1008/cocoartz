@@ -80,7 +80,7 @@ window.addEventListener('resize', function () {
 
 new objectLoader().poseLoader();
 
-var socket = io.connect('http://158.247.235.135:8080', {reconnection:false});
+var socket = io.connect('https://localhost:8443', {cors: {origin: '*' }, reconnection:false});
 socket.on('connect', function(){
 
     index = 0;

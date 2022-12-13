@@ -6,6 +6,7 @@
 
 const express = require('express');
 const http = require('http');
+const https = require('https');
 const app = express();
 const path = require('path');
 const server = http.createServer(app);
@@ -15,6 +16,18 @@ const bcrypt = require('bcrypt');
 const cookieParser = require('cookie-parser');
 const { checkLogin } = require("./module/checkLogin.js");
 const { getSunrise, getSunset } = require('sunrise-sunset-js');
+
+const pjson = require('./package.json');
+const os = require("os");
+
+// https cert
+
+const options = {
+    key: fs.readFileSync('./cocoartz.kr.key'),
+    cert: fs.readFileSync('./cocoartz.kr.pem')
+  };
+
+const httpsServer = https.createServer(options, app);
 
 // DB 연결부
 
@@ -90,6 +103,9 @@ app.get("/logout", function(req, res){
 
 // 설치, 관리와 관련된 리다이렉트
 
+var version = pjson.version; 
+var host = os.hostname();
+
 app.get("/install", function(req, res) {
     const installQuery = fs.readFileSync("./db/installQuery.sql").toString();
     dbQuery(installQuery)
@@ -122,12 +138,47 @@ app.get("/install", function(req, res) {
 
 app.get('/admin', function (req, res) {
     cookie = checkLogin(req, db).cookie;
-    if (!cookie.uuid) {
-        res.send ('쿠키가 없어용');
-        //쿠키 없으면 첫번째 경우는 테이블에 데이터가 아예 없는 경우가 있고 두번째 경우는 로그인안한 경우가 있는데 일단 테이블에 데이터가 하나라도 있으면 로그인 페이지 출력하기. 아니면 어드민 생성 페이지 출력
+    if (!cookie.isLogin) {
+        dbQuery(`SELECT * FROM users WHERE true;`)
+        .then(function(userRows) {
+            if ( userRows.length ){
+                res.render('admin', { uuid: cookie.uuid, userID: cookie.userID, userName: cookie.userName, isLogin: cookie.isLogin });
+            } else {
+                res.redirect('/install');
+            }
+        });
     } else {
-        res.send ('쿠키가 있어용');
-        //isadmin이 false이면 로그인페이지 ㄱㄱ
+        dbQuery(`SELECT isadmin FROM users WHERE uuid = '`+cookie.uuid+`';`)
+        .then(function(user) {
+            if (user[0].isadmin){
+                res.redirect('/dashboard');
+            } else {
+                res.redirect('/');
+            }
+        });
+    }
+});
+
+app.get('/dashboard', function (req, res) {
+    cookie = checkLogin(req, db).cookie;
+    if (!cookie.uuid) {
+        dbQuery(`SELECT * FROM users WHERE true;`)
+        .then(function(userRows) {
+            if ( userRows.length ){
+                res.redirect('/admin');
+            } else {
+                res.redirect('/install');
+            }
+        });
+    } else {
+        dbQuery(`SELECT isadmin FROM users WHERE uuid = '`+cookie.uuid+`';`)
+        .then(function(user) {
+            if (user[0].isadmin){
+                res.render('dashboard', { uuid: cookie.uuid, userID: cookie.userID, userName: cookie.userName, isLogin: true, version: version, host: host });
+            } else {
+                res.redirect('/');
+            }
+        });
     }
 });
 
@@ -207,27 +258,48 @@ app.post("/install", function (req, res) {
 
 // 로그인
 
-let result = {rows: [{uid: 1, uuid: 'anyrandomvalue', userid: 'test', userpw: '$2b$10$4zQ3fB1PXKzjIlRxzJSSXux0KH4xIImmeXlc6pP06a.5VmA.D1r1C', useremail: 'test@cocoartz.kr', username: '테스트', townname: '테스트님의 홈타운', townbio: null, landtype: 'basicLand', skytype: 'basicSky', floortype: null, joineddate: 0, lastlogin: 0, isadmin: false }]}
+
+
+//let result = {rows: [{uid: 1, uuid: 'anyrandomvalue', userid: 'test', userpw: '$2b$10$4zQ3fB1PXKzjIlRxzJSSXux0KH4xIImmeXlc6pP06a.5VmA.D1r1C', useremail: 'test@cocoartz.kr', username: '테스트', townname: '테스트님의 홈타운', townbio: null, landtype: 'basicLand', skytype: 'basicSky', floortype: null, joineddate: 0, lastlogin: 0, isadmin: false }]}
 
 app.post("/login", function (req, res) {
     const id = req.body.id,
     password = req.body.password;
 
-    if (result.rows[0].userid === id && bcrypt.compareSync(password, result.rows[0].userpw)) {
-        const name = result.rows[0].username;
-        const uuid = result.rows[0].uuid;
-        console.log("로그인 성공: "+'userid='+id+';username='+name+';login=true');
-        res.setHeader('Set-Cookie', 'uuid='+uuid);
-        res.redirect('/');
-    } else {
-        console.log("로그인 실패");
-        res.redirect('/login');
+    const loginSQL = async (userid) => {
+        dbQuery(`SELECT * FROM users WHERE userid = '`+userid+`';`).then(function(result){
+            if (result.length){
+                if (result[0].userid === id && bcrypt.compareSync(password, result[0].userpw)) {
+                    const name = result[0].username;
+                    const uuid = result[0].uuid;
+                    console.log("로그인 성공: "+'userid='+id+';username='+name+';login=true');
+                    res.setHeader('Set-Cookie', 'uuid='+uuid);
+                    res.redirect('/');
+                } else {
+                    console.log("로그인 실패");
+                    res.redirect('/login');
+                    return false;
+                }
+                return result[0];
+            } else {
+                console.log("로그인 실패");
+                res.redirect('/login');
+                return false;
+            }
+        }).catch(e => {
+            console.log("로그인 실패");
+            res.redirect('/login');
+            return false;
+        })
     }
+
+    loginSQL(id);
+    
 });
 
 // 소켓 io
 
-const io = require('socket.io')(server, { maxHttpBufferSize: 1e8 });
+const io = require('socket.io')(httpsServer, { cors: { origin: "*", methods: ["GET", "POST"]}, maxHttpBufferSize: 1e8 });
 
 let room_id = 'test';
 eval("var "+room_id+"_User = {}");
@@ -305,3 +377,8 @@ io.sockets.on('connection', function(socket){
 server.listen(8080, function(){
     console.log('포트 8080에서 서버 실행중...');
 });
+
+httpsServer.listen(8443, function(){
+    console.log('포트 8443에서 서버 실행중...');
+});
+

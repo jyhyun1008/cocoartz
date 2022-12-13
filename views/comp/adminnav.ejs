@@ -2,15 +2,13 @@
     <nav class="navbar">
         <div id="coconav">
           <a href="/">메인</a> | 
-          <a href="/about">코코아츠</a> | 
-          <a href="/logout">로그아웃</a> | 
-          <a href="/town/<%=userID %>">홈타운</a>
+          <a href="/dashboard">대시보드</a>
         </div>
       </nav>
 <% } else if ( adminExists == true ) { %>
     <nav class="navbar">
         <div id="coconav">
-          <a href="/">코코아츠 메인</a> | 
+          <a href="/">메인</a> | 
           <a href="/login">유저 로그인</a> | 
           <a href="/adminlogin">관리자 로그인</a>
         </div>

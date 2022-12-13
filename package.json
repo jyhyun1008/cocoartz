@@ -1,15 +1,17 @@
 {
   "name": "cocoartz",
-  "version": "1.0.0",
+  "version": "prealpha-0.0.1",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node app.js"
+    "start": "node app.js",
+    "start:dev": "nodemon app.js"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "activitypub-express": "^4.1.1",
     "artillery": "^2.0.0-27",
     "async_hooks": "^1.0.0",
     "bcrypt": "^5.1.0",
@@ -17,6 +19,9 @@
     "ejs": "^3.1.8",
     "express": "^4.18.2",
     "merge-images": "^2.0.0",
+    "mongodb": "^4.12.1",
+    "mongoose": "^6.8.0",
+    "mongosh": "^1.6.1",
     "pg": "^8.8.0",
     "socket.io": "^4.5.3",
     "sunrise-sunset-js": "^2.2.1",
